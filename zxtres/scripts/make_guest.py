@@ -178,6 +178,8 @@ CONF_ENTRIES = [
     'P5SJ,ROMBIN,PCjr BIOS:;',
     'P5SE,ROMBIN,EGA BIOS:;',
     'P5SC,ROMBIN,EC00 BIOS:;',
+    'P5SK,JRCBIN,PCjr cartridge 1:;',
+    'P5SL,JRCBIN,PCjr cartridge 2:;',
     # Settings
     'P3PQ,Info;',
     'P3L,Appearance;',

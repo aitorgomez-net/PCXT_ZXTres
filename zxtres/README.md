@@ -45,7 +45,7 @@ table [below](#what-the-board-does-not-have) says otherwise.
 | Second SD card as an IDE disk | The one microSD slot belongs to the controller. |
 | Real-time clock from the HPS | The board has none. |
 | Analog joysticks | The DB9 ports give directions and buttons only; the OSD offers Digital first. |
-| PCjr cartridges, PCjr RAM size, tape sound | Not in the OSD yet; the PCjr has 640 KiB. |
+| PCjr RAM size, tape sound | Not in the OSD: the 62 status bits of the controller are all in use. The PCjr has 640 KiB. |
 | Return to the Spectrum core from the OSD | Power cycle the board. |
 | Image files created by the core | The controller can write a file but not create one: `PCXT.CFG` must exist, see below. |
 
@@ -67,7 +67,8 @@ in the root when there is no such folder.
 A missing ROM leaves its slot empty: the machine asks only for the BIOS of
 the machine and the card chosen in the OSD, and holds the splash until it is
 there. Any other file of the card can be chosen for each slot in the OSD page
-*BIOS*.
+*BIOS*, which also takes the two PCjr cartridges (`.JRC` files). A cartridge
+stays in for the session only, and the machine restarts to see it.
 
 `PCXT.CFG` keeps the OSD settings, the path of each of the four images and of
 the five BIOS files, so the next start mounts them again. Without it, nothing
@@ -106,7 +107,7 @@ Machine group (machine, CPU speed, write protect), and the pages *Video*
 stacking, and the *Output* page: CRT offsets, scandoubler, 350-line CRT
 output, splash time, video info), *Audio* (sound cards, levels), *Hardware*
 (CPU type, fake 286 flags, writable BIOS, EMS, UMBs, joysticks), *BIOS* (the
-five BIOS files) and *Settings* (info, OSD position, save settings, reset to
+five BIOS files and the two PCjr cartridges) and *Settings* (info, OSD position, save settings, reset to
 defaults), then Reset.
 
 ## Video outputs

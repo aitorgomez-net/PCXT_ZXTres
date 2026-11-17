@@ -218,6 +218,8 @@ module pcxt_zxtres_guest (
         "P5SJ,ROMBIN,PCjr BIOS:;",
         "P5SE,ROMBIN,EGA BIOS:;",
         "P5SC,ROMBIN,EC00 BIOS:;",
+        "P5SK,JRCBIN,PCjr cartridge 1:;",
+        "P5SL,JRCBIN,PCjr cartridge 2:;",
         "P3PQ,Info;",
         "P3L,Appearance;",
         "P3OBD,OSD position,Centre,Top left,Top right,Bottom left,Bottom right;",

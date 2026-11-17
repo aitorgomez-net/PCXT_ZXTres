@@ -15,6 +15,10 @@
    machine asks only for the BIOS of the machine and the card in use.
      PCXT.CFG      the saved settings
 
+   The same page takes the two PCjr cartridges (.JRC files, ioctl indices 5
+   and 6), which have no default and are not kept in PCXT.CFG: a cartridge
+   is inserted for the session, and the machine restarts to see it.
+
    The default ROMs are also looked for in the root. At start-up the machine
    is held in reset while they are loaded.
 
@@ -70,9 +74,13 @@ static const char cfg_name[] = "PCXT    CFG";
 #define EC00_UNIT 'C'
 #define EGA_UNIT 'E'
 #define PCJR_UNIT 'J'
-#define ROMS 5
-static const char rom_units[ROMS] = { BIOS_UNIT, TANDY_UNIT, EC00_UNIT, EGA_UNIT, PCJR_UNIT };
-static const unsigned char rom_index[ROMS] = { 0, 1, 2, 3, 4 };
+#define CART1_UNIT 'K'
+#define CART2_UNIT 'L'
+#define ROMS 5                  /* the BIOS files: defaults, kept in PCXT.CFG */
+#define ALL_ROMS 7              /* and the two cartridges */
+static const char rom_units[ALL_ROMS] = { BIOS_UNIT, TANDY_UNIT, EC00_UNIT, EGA_UNIT, PCJR_UNIT,
+	CART1_UNIT, CART2_UNIT };
+static const unsigned char rom_index[ALL_ROMS] = { 0, 1, 2, 3, 4, 5, 6 };
 static const char *const rom_names[ROMS] = {
 	"PCXT    ROM", "TANDY   ROM", "EC00    ROM", "EGA     ROM", "PCJR    ROM"
 };
@@ -83,11 +91,11 @@ static const char *const rom_names[ROMS] = {
 /* The folder of the core's files: its cluster, 0 for the root. */
 static unsigned int homedir;
 
-/* Names of the images mounted on units '0'..'4', and of the BIOS files
-   (slots 5 to 9, in the order of rom_units), shown by the menu after the
+/* Names of the images mounted on units '0'..'4', and of the BIOS files and
+   cartridges (slots 5 to 11, in the order of rom_units), shown by the menu after the
    label of each file selector entry ("NAME.EXT", empty when nothing is
    mounted). */
-#define SLOTS (5 + ROMS)
+#define SLOTS (5 + ALL_ROMS)
 static char imgnames[SLOTS][13];
 
 /* The same, as mounted: the 8.3 name, empty when the drive is, and the
@@ -98,12 +106,12 @@ static unsigned int mountdir[SLOTS];
 /* 1 while autoboot() loads the files, with the machine held in reset. */
 static int booting;
 
-/* The position of a BIOS unit in rom_units, -1 for none. */
+/* The position of a BIOS or cartridge unit in rom_units, -1 for none. */
 static int rom_of(int unit)
 {
 	int i;
 
-	for(i = 0; i < ROMS; ++i)
+	for(i = 0; i < ALL_ROMS; ++i)
 		if(rom_units[i] == unit)
 			return(i);
 	return(-1);
@@ -195,6 +203,8 @@ int loadimage(char *filename, int unit)
 		case EC00_UNIT:
 		case EGA_UNIT:
 		case PCJR_UNIT:
+		case CART1_UNIT:
+		case CART2_UNIT:
 		{
 			int u = slot_of(unit);
 

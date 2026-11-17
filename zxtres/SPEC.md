@@ -79,6 +79,7 @@ The work is on branch `main` and has not run on a board yet.
 | Machine: MCL86 CPU, KFPC-XT chipset, CGA/Tandy/PCjr, HGC, EGA, EMS, UMBs, XT-IDE, floppy, serial mouse, gameport, Sound Blaster, OPL2, C/MS, Tandy sound, with the `mister_pcxt_full` options | Generated | `rtl/pcxt_zxtres_guest.sv`, which `scripts/make_guest.py` copies from `PCXT.sv`; `--check` catches drift |
 | Clocks: 100 and 50 MHz from the board's 50 MHz; 114.545, 57.27 and 28.636 MHz for the video and the SDRAM (MMCM, VCO 630 MHz); 27 MHz for the scan converter | Written | guest `CLOCKS` |
 | RAM in the board SDRAM through the MiSTer `sdram_ctrl` at 114.5 MHz | Written | guest |
+| PCjr cartridges: units K and L of the OSD page *BIOS*, ROM loader indices 5 and 6 (`.JRC` with its 512-byte header), for the session (not kept in `PCXT.CFG`); the machine restarts to see one, as on MiSTer | Written | `firmware/overrides.c`, guest `CONF_STR` |
 | ROM loading: `PCXT.ROM`, `TANDY.ROM`, `EC00.ROM`, `EGA.ROM` and `PCJR.ROM` loaded by `autoboot()` with the machine held in reset; any other file can be chosen in the OSD page *BIOS*; paths kept in `PCXT.CFG` | Written; the queue in Sim (a loader model with a registered random wait: every word in order with its index and offset, files back to back with words of the previous one still queued) | `firmware/overrides.c`, `rtl/zxtres_ioctl_fifo.sv`, `sim/run_ioctl_fifo_test.sh` |
 | Hard disks: the machine's XT-IDE served through the management window by `zxtres_ide_store` (units 0 and 1) | Inherited | `rtl/zxtres_ide_store.sv` |
 | Floppies: the machine's floppy controller served by `zxtres_fdd_store` (units 3 and 4) | Inherited | `rtl/zxtres_fdd_store.sv` |
@@ -98,8 +99,7 @@ The work is on branch `main` and has not run on a board yet.
 - The A200T build.
 - The whole-board simulation: `run_bios_sim.sh` and its testbench were not
   copied.
-- PCjr cartridges (MiSTer indices 5 and 6), the PCjr RAM size option and
-  tape sound.
+- The PCjr RAM size option and tape sound (no status bits left).
 - DisplayPort, I/O timing constraints, and the return to the Spectrum core
   from the OSD.
 
@@ -160,8 +160,11 @@ The target is the PCXT BIOS reaching the boot prompt with a CGA picture.
 
 ### 5.3 PCjr options (P2, S)
 
-The PCjr cartridges as ROM indices 5 and 6, in the OSD page *BIOS*. The PCjr
-RAM size option.
+The cartridges are in (section 3.1). The PCjr RAM size (MiSTer bits 98-101)
+and tape sound (bit 102) need five status bits, and the 62 MiST bits are all
+taken: one of the options of lesser use on this board must give its bits
+(for instance the border CRT offsets or frame stacking), or two options
+must share a bit. The PCjr has 640 KiB meanwhile.
 
 ## 6. Verification
 
