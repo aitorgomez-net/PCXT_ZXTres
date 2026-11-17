@@ -38,3 +38,13 @@ c5_pin_model_dump.txt
 *_netlist
 *.cdf
 **/.DS_Store
+
+# ZXTRES build outputs (zxtres/scripts/build_pcxt.sh, build_firmware.sh)
+/build/
+# Vivado projects created by zxtres/vivado/create_project_*.tcl
+/zxtres/vivado/project-*/
+__pycache__/
+*.pyc
+*.vvp
+*.vcd
+*.fst
