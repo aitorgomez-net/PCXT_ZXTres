@@ -64,7 +64,8 @@ set sv [list     {mist-modules/user_io.v} \
     {rtl/common/floppy.v} \
     {rtl/common/simple_fifo.v} \
     {rtl/common/simple_ram.v} \
-    {zxtres/vivado/generated/MSMouseWrapper.v} \
+    {rtl/common/MSMouseWrapper.v} \
+    {zxtres/vivado/generated/zxtres_nettype_wire.sv} \
     {rtl/common/ide.v} \
     {rtl/common/tandy_pcjr_joy.sv} \
     {rtl/common/jtframe_credits.v} \
@@ -160,14 +161,14 @@ set sv [list     {mist-modules/user_io.v} \
     {rtl/sound/jtopl/hdl/jtopl_slot_cnt.v} \
     {rtl/sound/jtopl/hdl/jtopl_reg_ch.v} \
     {rtl/sound/jtopl/hdl/jtopl.v} \
-    {zxtres/vivado/generated/mcl86_adder.sv} \
-    {zxtres/vivado/generated/mcl86_biu_max.sv} \
-    {zxtres/vivado/generated/mcl86_biu_min.sv} \
-    {zxtres/vivado/generated/mcl86_eu_core.sv} \
-    {zxtres/vivado/generated/mcl86_ucode.sv} \
+    {rtl/8088/mcl86_adder.sv} \
+    {rtl/8088/mcl86_biu_max.sv} \
+    {rtl/8088/mcl86_biu_min.sv} \
+    {rtl/8088/mcl86_eu_core.sv} \
+    {rtl/8088/mcl86_ucode.sv} \
     {rtl/8088/cpu_type_latch.sv} \
-    {zxtres/vivado/generated/i8088.sv} \
-    {zxtres/vivado/generated/i8088_min.sv} \
+    {rtl/8088/wrappers/i8088.sv} \
+    {rtl/8088/wrappers/i8088_min.sv} \
     {rtl/mem/sdram_pkg.sv} \
     {rtl/mem/sdram_arbiter.sv} \
     {rtl/mem/sdram_xbridge.sv} \
@@ -221,9 +222,10 @@ set sv [list     {mist-modules/user_io.v} \
     {rtl/KFPC-XT/HDL/bios_hold_notice.sv} \
     {rtl/KFPC-XT/HDL/ega_io_stretch.sv} \
     {rtl/KFPC-XT/HDL/reset_pending_notice.sv} \
-    {zxtres/vivado/generated/xtegactl.sv} \
-    {zxtres/vivado/generated/xtegactl_resolve.sv} \
-    {zxtres/vivado/generated/xtctl_id.sv} \
+    {rtl/KFPC-XT/HDL/xtegactl.sv} \
+    {rtl/KFPC-XT/HDL/xtegactl_resolve.sv} \
+    {rtl/KFPC-XT/HDL/xtctl_id.sv} \
+    {zxtres/vivado/generated/zxtres_nettype_wire.sv} \
     {rtl/KFPC-XT/HDL/ega_bios_loaded_latch.sv} \
     {rtl/KFPC-XT/HDL/keyboard_warm_reset.sv} \
     {rtl/KFPC-XT/HDL/pcjr_ir_kbd.sv} \

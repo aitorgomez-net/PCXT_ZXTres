@@ -53,7 +53,8 @@ BUILD = Path(sys.argv[1]).resolve()
 # Machine files whose frozen copy says `default_nettype wire (see build_pcxt.sh).
 RELAXED = set(lines(BUILD / 'relaxed.txt')) if (BUILD / 'relaxed.txt').exists() else set()
 part_a100t, part_a200t, defines = sys.argv[2], sys.argv[3], sys.argv[4:]
-GEN.mkdir(parents=True, exist_ok=True)
+shutil.rmtree(GEN, ignore_errors=True)   # nothing stale from an earlier list
+GEN.mkdir(parents=True)
 vhdl = [repo_path(e) for e in lines(BUILD / 'vhdl_sources.txt')]
 sv = [repo_path(e) for e in lines(BUILD / 'sv_sources.txt')]
 includes = [e[len('src/'):] if e != 'src' else '.' for e in lines(BUILD / 'include_dirs.txt')]

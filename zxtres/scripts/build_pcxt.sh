@@ -126,15 +126,16 @@ for directory in "${include_dirs[@]}"; do
 done
 
 # Freeze the inputs in the run directory, under their repository paths.
-# A machine file that sets `default_nettype none but declares its ports with
-# no net type (the Graphics Gremlin video files) is accepted by Quartus and
-# refused by Vivado: its frozen copy says `default_nettype wire instead, and
-# relaxed.txt lists it for make_vivado_tcl.py. The repository file is not
-# changed.
+# The Graphics Gremlin video files set `default_nettype none but declare their
+# ports with no net type, which Quartus accepts and Vivado refuses: their
+# frozen copies say `default_nettype wire instead, and relaxed.txt lists them
+# for make_vivado_tcl.py. The repository files are not changed.
+relax=(rtl/video/hgc.v rtl/video/hgc_sequencer.v rtl/video/hgc_pixel.v rtl/video/hgc_attrib.v
+       rtl/video/cga_vgaport.v rtl/video/cga_composite.v)
 : > "$out/relaxed.txt"
 for source in "${vhdl[@]}" "${sv[@]}" "${includes[@]}"; do
   mkdir -p "$out/src/$(dirname "$source")"
-  if [[ "$source" == rtl/* || "$source" == vendor/* ]] && grep -q '^`default_nettype none' "$source"; then
+  if [[ " ${relax[*]} " == *" $source "* ]]; then
     sed 's/^`default_nettype none/`default_nettype wire/' "$source" > "$out/src/$source"
     echo "src/$source" >> "$out/relaxed.txt"
   else
