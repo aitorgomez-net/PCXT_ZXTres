@@ -151,7 +151,9 @@ stale.
 The unit tests of the shared board logic run under WSL or Linux, with
 Verilator and Icarus Verilog, from `zxtres/sim`: the IDE and floppy stores
 against the machine's own devices, the line doubler, the scan converter, the
-video information, the OSD, the keyboard filter and the serial mouse. The
+video information, the OSD, the keyboard filter, the keyboard relay with
+the machine's own keyboard converter, the ROM loading queue and the serial
+mouse. The
 whole-board simulation of the PCAT port (`run_bios_sim.sh`) is still to be
 adapted to this machine.
 
