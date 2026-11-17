@@ -1,0 +1,6 @@
+# Keep the shell scripts runnable from WSL and Linux after a Windows checkout,
+# and the generated ZXTRES files byte-identical to what their scripts write
+# (make_guest.py --check compares the guest with its output).
+*.sh text eol=lf
+zxtres/** text eol=lf
+zxtres/**/*.png binary
