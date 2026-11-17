@@ -915,7 +915,7 @@ def main():
             sys.exit(f'{TARGET.relative_to(ROOT)} is stale: run zxtres/scripts/make_guest.py')
         print('GUEST_CHECK_PASS')
         return
-    TARGET.write_text(text)
+    TARGET.write_text(text, newline=chr(10))   # LF on every host, as git keeps it
     print(f'wrote {TARGET.relative_to(ROOT)}')
 
 
