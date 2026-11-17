@@ -32,7 +32,7 @@ module zxtres_fdd_store_tb;
 
     /* verilator lint_off PINCONNECTEMPTY */
     floppy u_fdc (
-        .clk(clk), .rst_n(!reset),
+        .clk(clk), .rst_n(!reset), .pcjr_mode(1'b0),
         .dma_req(), .dma_ack(1'b0), .dma_tc(1'b0), .dma_readdata(8'h00), .dma_writedata(),
         .irq(),
         .io_address(io_address), .io_read(io_read), .io_readdata(io_readdata),
@@ -41,8 +41,7 @@ module zxtres_fdd_store_tb;
         .mgmt_address(mgmt_address[3:0]), .mgmt_fddn(mgmt_address[7]),
         .mgmt_write(mgmt_write && selected), .mgmt_writedata(mgmt_writedata),
         .mgmt_read(mgmt_read && selected), .mgmt_readdata(fdc_mgmt_readdata),
-        .wp(2'b00), .clock_rate(28'd50_000_000), .request(request),
-        .io_write_address(3'd0)
+        .wp(2'b00), .clock_rate(28'd50_000_000), .request(request)
     );
     /* verilator lint_on PINCONNECTEMPTY */
 
