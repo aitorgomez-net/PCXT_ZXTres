@@ -126,13 +126,13 @@ CONF_ENTRIES = [
     opt('', 3, 4, 'Machine,IBM PCXT,Tandy 1000,IBM PCjr'),
     opt('', 17, 18, 'CPU Speed,4.77MHz,7.16MHz,9.54MHz,Max'),
     opt('', 19, 20, 'Write protect,None,A:,B:,A: & B:'),
-    'P1,Video;',
-    'P2,Audio;',
-    'P4,Hardware;',
-    'P5,BIOS;',
-    'P3,Settings;',
-    'T0,Reset;',
+    # A page is declared ("P1,Video;") right before its own entries: the
+    # firmware reads a declaration that follows another one as a page inside
+    # it, so the root pages cannot be listed together. A page inside a page
+    # ("P6PP,Video info;") may follow a declaration, which is why Video info
+    # comes after Info, as in the PCAT port; it shows on the Output page.
     # Video
+    'P1,Video;',
     'P1L,Card;',
     opt('P1', 6, 6, 'Video card,CGA/HGC,EGA'),
     opt('P1', 44, 45, 'Monitor,5154/ECD,5153/CGA,5151/MDA'),
@@ -155,8 +155,8 @@ CONF_ENTRIES = [
     opt('P6', 34, 35, '350-line CRT,480p 31 kHz,Native,480i 15 kHz,240p 15 kHz'),
     'P6L,Boot splash;',
     opt('P6', 8, 9, 'Splash time,5 s,10 s,15 s,0 s'),
-    'P6PP,Video info;',
     # Audio
+    'P2,Audio;',
     'P2L,Sound cards;',
     opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Disabled'),
     opt('P2', 42, 43, 'OPL2,Adlib 388h,SB FM 388h/228h,Disabled'),
@@ -168,6 +168,7 @@ CONF_ENTRIES = [
     opt('P2', 36, 37, 'Audio Boost,No,2x,4x'),
     opt('P2', 38, 39, 'Stereo Mix,none,25%,50%,100%'),
     # Hardware
+    'P4,Hardware;',
     'P4L,CPU;',
     opt('P4', 7, 7, 'CPU Type,8088,8086'),
     opt('P4', 53, 53, 'Fake 286 FLAGS,Off,On'),
@@ -183,6 +184,7 @@ CONF_ENTRIES = [
     opt('P4', 27, 27, 'Sync to CPU,No,Yes'),
     opt('P4', 58, 58, 'Swap Joysticks,No,Yes'),
     # BIOS
+    'P5,BIOS;',
     'P5SB,ROMBIN,PCXT BIOS:;',
     'P5ST,ROMBIN,Tandy BIOS:;',
     'P5SJ,ROMBIN,PCjr BIOS:;',
@@ -191,12 +193,15 @@ CONF_ENTRIES = [
     'P5SK,JRCBIN,PCjr cartridge 1:;',
     'P5SL,JRCBIN,PCjr cartridge 2:;',
     # Settings
+    'P3,Settings;',
     'P3PQ,Info;',
+    'P6PP,Video info;',
     'P3L,Appearance;',
     opt('P3', 11, 13, 'OSD position,Centre,Top left,Top right,Bottom left,Bottom right'),
     'P3L,Settings file;',
     'P3T1,Save settings;',
     'P3T2,Reset to defaults;',
+    'T0,Reset;',
     'V,v0.1',
 ]
 
