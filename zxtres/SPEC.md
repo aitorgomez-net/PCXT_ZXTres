@@ -90,6 +90,7 @@ The work is on branch `main` and has not run on a board yet.
 | Boot splash: the MiSTer picture with "MiSTer" redrawn as a striped, slanted "ZXTres" (T, r and e from the original word, Z, X and s drawn in the same lettering, white top stripes as in the PCAT-286 splash) | Done | `scripts/make_splash.py`, `splash/splash_320x200.hex`, used by `build_pcxt.sh` in place of `rtl/video/splash_320x200.hex` |
 | F12 credits with the ZXTres art and the port's credits | Done | `credits/msg`, and `credits/msg.bin`, which is the first 8192 rows (four pages) of the binary output of the core's own `credits/msg2hex` |
 | Unit tests of the shared modules | Inherited | `sim/` |
+| `PCXT.CFG` writer for test cards (nine paths of 52 bytes, format `PCXT` version 1, as `overrides.c` reads it) | Done | `sim/make_cfg_file.py` |
 
 ### 3.2 Not started
 
@@ -161,12 +162,6 @@ The target is the PCXT BIOS reaching the boot prompt with a CGA picture.
 
 The PCjr cartridges as ROM indices 5 and 6, in the OSD page *BIOS*. The PCjr
 RAM size option.
-
-### 5.4 Settings file (P1, S)
-
-`sim/make_cfg_file.py` still writes the PCAT-286 file. It must write
-`PCXT.CFG` in the layout of `overrides.c`: format `PCXT`, version 1, nine
-paths of 52 bytes.
 
 ## 6. Verification
 
