@@ -234,6 +234,7 @@ set sv [list     {mist-modules/user_io.v} \
     {zxtres/rtl/zxtres_ps2_key.sv} \
     {zxtres/rtl/zxtres_ps2_kbd_relay.sv} \
     {zxtres/rtl/zxtres_ioctl_fifo.sv} \
+    {zxtres/rtl/zxtres_status_ext.sv} \
     {zxtres/rtl/zxtres_ide_store.sv} \
     {zxtres/rtl/zxtres_fdd_store.sv} \
     {zxtres/rtl/zxtres_sd_arb.sv} \

@@ -114,7 +114,7 @@ mapfile -t include_dirs < <(python3 zxtres/scripts/pcxt_sources.py includes | tr
 vhdl+=("${machine_vhdl[@]}")
 sv+=("${machine_sv[@]}"
      zxtres/rtl/zxtres_dpram.sv zxtres/rtl/zxtres_ps2_key.sv zxtres/rtl/zxtres_ps2_kbd_relay.sv
-     zxtres/rtl/zxtres_ioctl_fifo.sv zxtres/rtl/zxtres_ide_store.sv zxtres/rtl/zxtres_fdd_store.sv zxtres/rtl/zxtres_sd_arb.sv
+     zxtres/rtl/zxtres_ioctl_fifo.sv zxtres/rtl/zxtres_status_ext.sv zxtres/rtl/zxtres_ide_store.sv zxtres/rtl/zxtres_fdd_store.sv zxtres/rtl/zxtres_sd_arb.sv
      mist-modules/scandoubler/scandoubler_framing.v zxtres/rtl/zxtres_linedouble.sv
      zxtres/rtl/zxtres_sram_ctrl.sv zxtres/rtl/zxtres_scanconv.sv
      zxtres/rtl/zxtres_vidinfo.sv zxtres/rtl/pcxt_zxtres_guest.sv zxtres/rtl/zxtres_pcxt_top.sv)

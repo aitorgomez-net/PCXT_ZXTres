@@ -24,3 +24,8 @@ diskimg.o : diskimg.c config.h $(CC)
 	@echo "Compiling diskimg.c (five block devices)"
 	@$(CC) $(COPT) $(CFLAGS) -I$(INCDIR) -I$(DEMISTIFYPATH)/firmware -o=diskimg.asm diskimg.c $(CDEFS)
 	@$(AS) >/dev/null $(ASFLAGS) -o diskimg.o diskimg.asm
+
+statusword.o : statusword.c config.h $(CC)
+	@echo "Compiling statusword.c (128 bits)"
+	@$(CC) $(COPT) $(CFLAGS) -I$(INCDIR) -I$(DEMISTIFYPATH)/firmware -o=statusword.asm statusword.c $(CDEFS)
+	@$(AS) >/dev/null $(ASFLAGS) -o statusword.o statusword.asm

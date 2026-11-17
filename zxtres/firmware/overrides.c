@@ -55,6 +55,8 @@ int LoadROM(const char *fn);
 
 extern unsigned int statusword;
 extern unsigned int statusword_high;
+extern unsigned int statusword_ext[2];
+void statusword_set(unsigned int shift, unsigned int mask, unsigned int v);
 extern unsigned char romtype;
 extern uint32_t root_directory_cluster;
 extern struct menu_entry menu[];
@@ -63,6 +65,26 @@ extern int menuindex;
 void buildmenu(int set);
 void cycle(int row);
 void toggle(int row);
+
+/* The bit numbers of the configuration string's O and T entries: 0-9, A-Z
+   and a-z for bits 0-61, as in DeMiSTify, and the characters 80h-BFh for
+   bits 64-127 (zxtres/scripts/make_guest.py writes them), which the 128-bit
+   status word of statusword.c holds. */
+int configstring_next();
+int configstring_getdigit()
+{
+	int c = configstring_next() & 0xff;
+
+	if(c >= 0x80 && c < 0xc0)
+		return(c - 0x80 + 64);
+	if(c >= '0' && c <= '9')
+		return(c - '0');
+	if(c >= 'A' && c <= 'Z')
+		return(c - 'A' + 10);
+	if(c >= 'a' && c <= 'z')
+		return(c - 'a' + 36);
+	return(c);
+}
 
 static const char home_name[] = "PCXT       ";
 static const char cfg_name[] = "PCXT    CFG";
@@ -364,15 +386,17 @@ static int mount_path(int unit, const char *path)
 
 /* PCXT.CFG, one sector:
      0   "PCXT"
-     4   version (1)
-     8   status word, low 32 bits (little endian)
-     12  status word, high 32 bits
+     4   version (2; version 1 kept 64 status bits)
+     8   status word, bits 0-31 (little endian)
+     12  bits 32-63
+     16  bits 64-95
+     20  bits 96-127
      32  path of the image in hard disk 0 (PATH_SIZE bytes, ending in a zero;
          empty for none), then hard disk 1, floppy A, floppy B, and the BIOS
          files in the order of rom_units */
 
 #define CFG_SIZE 512
-#define CFG_VERSION 1
+#define CFG_VERSION 2
 #define CFG_PATHS 32
 #define CFG_DISKS 4
 #define CFG_UNITS (CFG_DISKS + ROMS)
@@ -433,6 +457,8 @@ static int cfg_store(int blank)
 		cfg_bytes[4] = CFG_VERSION;
 		put32(cfg_bytes + 8, statusword & ~RESET_BIT);
 		put32(cfg_bytes + 12, statusword_high);
+		put32(cfg_bytes + 16, statusword_ext[0]);
+		put32(cfg_bytes + 20, statusword_ext[1]);
 		for(i = 0; i < CFG_UNITS; ++i)
 			image_path(slot_of(cfg_units[i]), (char *)cfg_bytes + CFG_PATHS + i * PATH_SIZE);
 	}
@@ -477,6 +503,8 @@ char *autoboot()
 	{
 		statusword = get32(cfg_bytes + 8) | RESET_BIT;
 		statusword_high = get32(cfg_bytes + 12);
+		statusword_ext[0] = get32(cfg_bytes + 16);
+		statusword_ext[1] = get32(cfg_bytes + 20);
 		sendstatus();
 	}
 
@@ -564,6 +592,8 @@ void confirm_yes(int row)
 	   file, and reset the machine so that they all apply. */
 	statusword = RESET_BIT;
 	statusword_high = 0;
+	statusword_ext[0] = 0;
+	statusword_ext[1] = 0;
 	sendstatus();
 	cfg_store(1);
 	booting = 1;              /* the machine is held already */
@@ -864,14 +894,6 @@ void Menu_DrawRow(int row, int selected, struct menu_entry *m)
 }
 
 /* Left and right change the option under the cursor. */
-static void statusword_put(unsigned int shift, unsigned int mask, unsigned int v)
-{
-	if(shift >= 32)
-		statusword_high = (statusword_high & ~(mask << (shift - 32))) | (v << (shift - 32));
-	else
-		statusword = (statusword & ~(mask << shift)) | (v << shift);
-}
-
 int Menu_AdjustRow(int row, int dir)
 {
 	unsigned int shift, mask, limit, v;
@@ -886,7 +908,7 @@ int Menu_AdjustRow(int row, int dir)
 		v = (v + 1 >= limit) ? 0 : v + 1;
 	else
 		v = v ? v - 1 : limit - 1;
-	statusword_put(shift, mask, v);
+	statusword_set(shift, mask, v);
 	sendstatus();
 	buildmenu(0);
 	return(1);

@@ -51,10 +51,14 @@ See SPEC.md of the PCAT-286 port, sections 2.1 and 2.2, for the resources of
 the board and for what DeMiSTify provides and where it stops. The limits that
 shape this port:
 
-- **64 status bits.** DeMiSTify offers 64 status bits (option letters 0-9,
-  A-Z and a-z, bits 0-61). PCXT uses 128. `make_guest.py` gives each OSD
-  option a MiST bit and rebuilds the 128-bit MiSTer `status` from them, with
-  fixed values for the options that are not offered.
+- **Status bits.** DeMiSTify offers 64 status bits (option letters 0-9,
+  A-Z and a-z, bits 0-61). The port widens it to 128: the firmware's own
+  `statusword.c` sends sixteen bytes with `user_io`'s command 1Eh,
+  `user_io` keeps the first eight and `zxtres_status_ext.sv` the rest, and
+  the configuration string writes bits 64-127 as the bytes 80h-BFh, which
+  the firmware's `configstring_getdigit()` reads. `make_guest.py` gives each
+  OSD option a MiST bit and rebuilds the 128-bit MiSTer `status` from them,
+  with fixed values for the options that are not offered.
 - **No wait signal on `data_io`.** The PCXT ROM loader (`rom_loader`) writes
   the SDRAM only while the bus is held and raises `ioctl_wait`, but `data_io`
   has no wait input. `zxtres_ioctl_fifo` keeps up to 512 words between the
@@ -79,6 +83,8 @@ The work is on branch `main` and has not run on a board yet.
 | Machine: MCL86 CPU, KFPC-XT chipset, CGA/Tandy/PCjr, HGC, EGA, EMS, UMBs, XT-IDE, floppy, serial mouse, gameport, Sound Blaster, OPL2, C/MS, Tandy sound, with the `mister_pcxt_full` options | Generated | `rtl/pcxt_zxtres_guest.sv`, which `scripts/make_guest.py` copies from `PCXT.sv`; `--check` catches drift |
 | Clocks: 100 and 50 MHz from the board's 50 MHz; 114.545, 57.27 and 28.636 MHz for the video and the SDRAM (MMCM, VCO 630 MHz); 27 MHz for the scan converter | Written | guest `CLOCKS` |
 | RAM in the board SDRAM through the MiSTer `sdram_ctrl` at 114.5 MHz | Written | guest |
+| 128-bit status word: firmware `statusword.c` (send, get, cycle over four words), `configstring_getdigit()` for bits 64-127, `PCXT.CFG` version 2 with all 128 bits; RTL `zxtres_status_ext` beside `user_io` | Sim (`user_io` and the module on the controller's SPI: bits 0-63 and 64-127, other commands, a 64-bit 1Eh, transfers 5 ns apart) | `firmware/statusword.c`, `firmware/overrides.c`, `rtl/zxtres_status_ext.sv`, `sim/run_status_ext_test.sh` |
+| PCjr RAM size (Hardware page, MiST bits 64-67) and tape sound (Audio page, bit 68), with MiSTer's values | Written | guest `CONF_STR` |
 | PCjr cartridges: units K and L of the OSD page *BIOS*, ROM loader indices 5 and 6 (`.JRC` with its 512-byte header), for the session (not kept in `PCXT.CFG`); the machine restarts to see one, as on MiSTer | Written | `firmware/overrides.c`, guest `CONF_STR` |
 | ROM loading: `PCXT.ROM`, `TANDY.ROM`, `EC00.ROM`, `EGA.ROM` and `PCJR.ROM` loaded by `autoboot()` with the machine held in reset; any other file can be chosen in the OSD page *BIOS*; paths kept in `PCXT.CFG` | Written; the queue in Sim (a loader model with a registered random wait: every word in order with its index and offset, files back to back with words of the previous one still queued) | `firmware/overrides.c`, `rtl/zxtres_ioctl_fifo.sv`, `sim/run_ioctl_fifo_test.sh` |
 | Hard disks: the machine's XT-IDE served through the management window by `zxtres_ide_store` (units 0 and 1) | Inherited | `rtl/zxtres_ide_store.sv` |
@@ -99,7 +105,6 @@ The work is on branch `main` and has not run on a board yet.
 - The A200T build.
 - The whole-board simulation: `run_bios_sim.sh` and its testbench were not
   copied.
-- The PCjr RAM size option and tape sound (no status bits left).
 - DisplayPort, I/O timing constraints, and the return to the Spectrum core
   from the OSD.
 
@@ -109,7 +114,8 @@ The work is on branch `main` and has not run on a board yet.
 | --- | --- |
 | Board logic copied from PCAT-286, not shared through a submodule | The two repositories evolve separately. The copied files are byte-identical except `zxtres_osd.sv`, whose title became a parameter. A fix to one should be copied to the other. |
 | MiST bit allocation in `make_guest.py` (`CONF_ENTRIES`) | One table drives both the `CONF_STR` and the remapping to MiSTer bits, so the two cannot drift. |
-| MiSTer bits fixed instead of offered: MPU-401 off (bit 88), PCjr 640 KiB (bits 98-101), splash time from MiST bits 8-9 (MiSTer bits 103-104) | No MIDI on the board; the PCjr options wait for the cartridges. |
+| MiSTer bits fixed instead of offered: MPU-401 off (bit 88) | No MIDI on the board. |
+| Status word widened to 128 bits in the port's firmware and RTL, not in DeMiSTify or mist-modules | The submodules stay as they are: the firmware replaces DeMiSTify's `statusword.c` at build time and overrides the weak `configstring_getdigit()`, and a separate module reads bytes 9-16 of the command that `user_io` stops at 8. |
 | Joystick type offered with Digital first | The DB9 ports are digital; MiSTer offers Analog first. The OSD value is remapped. |
 | The ROM loader waits behind a FIFO | `rom_loader` writes only while the CPU bus is held. During reset the hold is granted at once, so the FIFO only needs to absorb the SDRAM refresh and arbitration latency. Each word carries the parity of its download: when the firmware starts the next ROM before the loader has taken the last words of the previous one, those words keep their index, and the next download reaches the loader after a few idle clocks. The first version changed the index under the queued words; the test caught it. |
 | Win+F12 filtered at byte level before the PS/2 relay | The OSD key must not reach the machine. F12 alone stays with the machine, for the credits and the splash. |
@@ -162,14 +168,6 @@ Adapt the PCAT-286 `run_bios_sim.sh` and its testbench to this guest:
 
 The target is the PCXT BIOS reaching the boot prompt with a CGA picture.
 
-### 5.3 PCjr options (P2, S)
-
-The cartridges are in (section 3.1). The PCjr RAM size (MiSTer bits 98-101)
-and tape sound (bit 102) need five status bits, and the 62 MiST bits are all
-taken: one of the options of lesser use on this board must give its bits
-(for instance the border CRT offsets or frame stacking), or two options
-must share a bit. The PCjr has 640 KiB meanwhile.
-
 ## 6. Verification
 
 - `zxtres/scripts/make_guest.py --check`: the committed guest matches
@@ -183,5 +181,6 @@ must share a bit. The PCjr has 640 KiB meanwhile.
   - the keyboard events;
   - the keyboard relay with the machine's `KFPS2KB`;
   - the ROM loading queue;
+  - the status bits 64-127 beside `user_io`;
   - the serial mouse.
 - A Vivado build with no critical warnings and positive WNS and WHS.

@@ -45,7 +45,6 @@ table [below](#what-the-board-does-not-have) says otherwise.
 | Second SD card as an IDE disk | The one microSD slot belongs to the controller. |
 | Real-time clock from the HPS | The board has none. |
 | Analog joysticks | The DB9 ports give directions and buttons only; the OSD offers Digital first. |
-| PCjr RAM size, tape sound | Not in the OSD: the 62 status bits of the controller are all in use. The PCjr has 640 KiB. |
 | Return to the Spectrum core from the OSD | Power cycle the board. |
 | Image files created by the core | The controller can write a file but not create one: `PCXT.CFG` must exist, see below. |
 
@@ -105,8 +104,8 @@ The main page lists the four drives with the name of the image in each, a
 Machine group (machine, CPU speed, write protect), and the pages *Video*
 (card, monitor, Hercules options, display tint, composite, border, frame
 stacking, and the *Output* page: CRT offsets, scandoubler, 350-line CRT
-output, splash time, video info), *Audio* (sound cards, levels), *Hardware*
-(CPU type, fake 286 flags, writable BIOS, EMS, UMBs, joysticks), *BIOS* (the
+output, splash time, video info), *Audio* (sound cards, PCjr tape sound, levels), *Hardware*
+(CPU type, fake 286 flags, writable BIOS, EMS, UMBs, PCjr RAM, joysticks), *BIOS* (the
 five BIOS files and the two PCjr cartridges) and *Settings* (info, OSD position, save settings, reset to
 defaults), then Reset.
 
@@ -153,8 +152,8 @@ The unit tests of the shared board logic run under WSL or Linux, with
 Verilator and Icarus Verilog, from `zxtres/sim`: the IDE and floppy stores
 against the machine's own devices, the line doubler, the scan converter, the
 video information, the OSD, the keyboard filter, the keyboard relay with
-the machine's own keyboard converter, the ROM loading queue and the serial
-mouse. The
+the machine's own keyboard converter, the ROM loading queue, the status bits
+64-127 and the serial mouse. The
 whole-board simulation of the PCAT port (`run_bios_sim.sh`) is still to be
 adapted to this machine.
 

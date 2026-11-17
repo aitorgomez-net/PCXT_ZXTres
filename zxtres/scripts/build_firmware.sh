@@ -24,6 +24,7 @@ rm -rf "${out:?}"
 mkdir -p "$out"
 cp "$root/zxtres/firmware/config.h" "$root/zxtres/firmware/overrides.c" \
    "$root/zxtres/firmware/osd.c" "$root/zxtres/firmware/font.c" \
+   "$root/zxtres/firmware/statusword.c" \
    "$root/zxtres/firmware/overrides.mk" "$out/"
 # DeMiSTify reads the block device number of a request in two bits; the core
 # has five (two hard disks, the CMOS file, two floppy drives).

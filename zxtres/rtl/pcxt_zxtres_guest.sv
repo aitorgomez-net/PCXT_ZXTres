@@ -196,6 +196,7 @@ module pcxt_zxtres_guest (
         "P2Ogh,OPL2,Adlib 388h,SB FM 388h/228h,Disabled;",
         "P2Oxx,Tandy Sound,Disabled,Enabled;",
         "P2Ozz,SB IRQ,5,7;",
+        "P2O\204\204,Tape sound,Disabled,Enabled;",
         "P2L,Levels;",
         "P2OWX,Speaker Volume,1,2,3,4;",
         "P2Oab,Audio Boost,No,2x,4x;",
@@ -208,6 +209,7 @@ module pcxt_zxtres_guest (
         "P4O55,EMS D000-DFFF,Enabled,Disabled;",
         "P4Ott,UMB C400-CFFF,Enabled,Disabled;",
         "P4Oss,A000 UMB,Enabled,Disabled;",
+        "P4O\200\203,PCjr RAM,128K,192K,256K,320K,384K,448K,512K,576K,640K;",
         "P4L,Joysticks;",
         "P4ONO,Joystick 1,Digital,Analog,Disabled;",
         "P4OPQ,Joystick 2,Digital,Analog,Disabled;",
@@ -229,14 +231,14 @@ module pcxt_zxtres_guest (
         "V,v0.1"
     };
 
-    logic [63:0] mist_status;
+    logic [127:0] mist_status;
     logic [31:0] joystick_0, joystick_1;
 
     // The MiSTer status word of the verbatim blocks (the EGA menu layout,
-    // LAYOUT_EGA), rebuilt from the 64 MiST bits. MiSTer options with no
-    // place on this board read as their first value; the PCjr RAM is fixed at
-    // 640 KiB, the joysticks offer Digital first (the DB9 pads have no analog
-    // axes) and are put back in MiSTer order (Analog, Digital, Disabled).
+    // LAYOUT_EGA), rebuilt from the 128 MiST bits. MiSTer options with no
+    // place on this board read as their first value; the joysticks offer
+    // Digital first (the DB9 pads have no analog axes) and are put back in
+    // MiSTer order (Analog, Digital, Disabled).
     function automatic [1:0] joy_mode(input [1:0] osd);
         joy_mode = osd == 2'd0 ? 2'b01 : osd == 2'd1 ? 2'b00 : 2'b10;   // {disable, digital}
     endfunction
@@ -284,8 +286,8 @@ module pcxt_zxtres_guest (
     assign status_zx[88]      = 1'b1;                 // MPU-401 off: no MIDI on the board
     assign status_zx[95:89]   = 7'd0;                 // sync widths: auto
     assign status_zx[97:96]   = mist_status[4:3];     // machine
-    assign status_zx[101:98]  = 4'd8;                 // PCjr RAM 640 KiB
-    assign status_zx[102]     = 1'b0;                 // PCjr tape sound
+    assign status_zx[101:98]  = mist_status[67:64];   // PCjr RAM
+    assign status_zx[102]     = mist_status[68];      // PCjr tape sound
     assign status_zx[104:103] = mist_status[9:8];     // splash time
     assign status_zx[127:105] = '0;
 
@@ -775,7 +777,7 @@ module pcxt_zxtres_guest (
         .joystick_0(joystick_0), .joystick_1(joystick_1), .joystick_2(), .joystick_3(),
         .joystick_4(), .joystick_analog_0(), .joystick_analog_1(),
         .buttons(), .switches(), .scandoubler_disable(), .ypbpr(), .no_csync(),
-        .status(mist_status), .core_mod(), .rtc(),
+        .status(mist_status[63:0]), .core_mod(), .rtc(),
         .sd_lba(arb_sd_lba), .sd_rd(arb_sd_rd), .sd_wr(arb_sd_wr),
         .sd_ack(), .sd_ack_conf(), .sd_ack_x(sd_ack_x), .sd_conf(1'b0), .sd_sdhc(1'b1),
         .sd_dout(sd_dout), .sd_dout_strobe(sd_dout_strobe), .sd_din(arb_sd_din),
@@ -789,6 +791,11 @@ module pcxt_zxtres_guest (
         .i2c_start(), .i2c_read(), .i2c_addr(), .i2c_subaddr(), .i2c_dout(),
         .i2c_din(8'h00), .i2c_ack(1'b0), .i2c_end(1'b0),
         .serial_data(8'h00), .serial_strobe(1'b0)
+    );
+    // Status bits 64-127: bytes 9-16 of the same SPI command.
+    zxtres_status_ext u_status_ext (
+        .clk_sys(clk_chipset), .SPI_CLK(SPI_SCK), .SPI_SS_IO(CONF_DATA0), .SPI_MOSI(SPI_DI),
+        .status_ext(mist_status[127:64])
     );
 
     // ROM files from the card. MiST data_io cannot wait; the words go through
