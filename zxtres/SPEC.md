@@ -142,7 +142,11 @@ asynchronous to all others.
 
 The build of the same day with the PCjr cartridges, the ROM queue fix and
 the narrower `default_nettype` handling has WNS +0.321 ns, WHS +0.056 ns,
-29.8k LUTs, 17.3k registers, 30 block RAM tiles, no critical warnings.
+29.8k LUTs, 17.3k registers, 30 block RAM tiles, no critical warnings. With
+the 128-bit status word (`zxtres_status_ext`, PCjr RAM and Tape sound in the
+OSD) it has WNS +0.102 ns, WHS +0.052 ns, 29.8k LUTs, 17.3k registers, 30
+block RAM tiles, no critical warnings. The slack moves from build to build
+by a few hundred picoseconds.
 
 Still to do: build the A200T, and watch the `clk_14_318` to clk_114 crossing,
 which has little margin of its own.
