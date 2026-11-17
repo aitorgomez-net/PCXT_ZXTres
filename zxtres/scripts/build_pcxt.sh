@@ -152,12 +152,15 @@ python3 zxtres/scripts/make_mem.py osdfont rtl/common/font0.hex "$out/osd_font.m
 printf 'src/%s\n' "${vhdl[@]}" > "$out/vhdl_sources.txt"
 # Vivado reads all Verilog sources as one compilation unit, so a file that
 # ends with `default_nettype none leaks it into the next; Quartus compiles
-# them separately. Restore the default after each such file.
-printf '`default_nettype wire\n' > "$out/src/zxtres_nettype_wire.sv"
+# them separately. Restore the default after each such file, with a helper
+# file of its own each time: Vivado reads a file named twice only once.
+helpers=0
 for source in "${sv[@]}"; do
   echo "src/$source"
   if grep -q 'default_nettype none' "$out/src/$source" && ! grep -q 'default_nettype wire' "$out/src/$source"; then
-    echo "src/zxtres_nettype_wire.sv"
+    helpers=$((helpers + 1))
+    printf '`default_nettype wire\n' > "$out/src/zxtres_nettype_wire_$helpers.sv"
+    echo "src/zxtres_nettype_wire_$helpers.sv"
   fi
 done > "$out/sv_sources.txt"
 printf '%s\n' src "${include_dirs[@]/#/src/}" > "$out/include_dirs.txt" 2>/dev/null || echo src > "$out/include_dirs.txt"

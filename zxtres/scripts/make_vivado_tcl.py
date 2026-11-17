@@ -38,7 +38,7 @@ def repo_path(entry):
     if entry in RELAXED:
         shutil.copyfile(BUILD / entry, GEN / name)
         return f'zxtres/vivado/generated/{name}'
-    if path.startswith('build/zxtres-pcxt/firmware/') or name == 'zxtres_nettype_wire.sv':
+    if path.startswith('build/zxtres-pcxt/firmware/') or name.startswith('zxtres_nettype_wire'):
         source = ROOT / path if path.startswith('build/') else BUILD / entry
         shutil.copyfile(source, GEN / name)
         return f'zxtres/vivado/generated/{name}'

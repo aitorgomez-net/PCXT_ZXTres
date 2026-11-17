@@ -134,8 +134,12 @@ constraints of section 4 and the exceptions of MiSTer's `SYSTEM.sdc`: the
 configuration latched at reset, `splash_off`, and the 27 MHz clock
 asynchronous to all others.
 
-Still to do: build the A200T, and get some margin on the
-`clk_14_318` to clk_114 crossing if a later build fails there.
+The build of the same day with the PCjr cartridges, the ROM queue fix and
+the narrower `default_nettype` handling has WNS +0.321 ns, WHS +0.056 ns,
+29.8k LUTs, 17.3k registers, 30 block RAM tiles, no critical warnings.
+
+Still to do: build the A200T, and watch the `clk_14_318` to clk_114 crossing,
+which has little margin of its own.
 
 ### 5.1 First board bring-up (P0, S)
 

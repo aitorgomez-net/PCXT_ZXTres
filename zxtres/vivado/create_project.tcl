@@ -65,7 +65,7 @@ set sv [list     {mist-modules/user_io.v} \
     {rtl/common/simple_fifo.v} \
     {rtl/common/simple_ram.v} \
     {rtl/common/MSMouseWrapper.v} \
-    {zxtres/vivado/generated/zxtres_nettype_wire.sv} \
+    {zxtres/vivado/generated/zxtres_nettype_wire_1.sv} \
     {rtl/common/ide.v} \
     {rtl/common/tandy_pcjr_joy.sv} \
     {rtl/common/jtframe_credits.v} \
@@ -124,7 +124,7 @@ set sv [list     {mist-modules/user_io.v} \
     {rtl/sound/sb_volume.sv} \
     {rtl/sound/sb_dma_glue.sv} \
     {rtl/sound/saa1099.sv} \
-    {zxtres/vivado/generated/zxtres_nettype_wire.sv} \
+    {zxtres/vivado/generated/zxtres_nettype_wire_2.sv} \
     {rtl/sound/jt89/hdl/jt89_noise.v} \
     {rtl/sound/jt89/hdl/jt89_tone.v} \
     {rtl/sound/jt89/hdl/jt89_mixer.v} \
@@ -225,7 +225,7 @@ set sv [list     {mist-modules/user_io.v} \
     {rtl/KFPC-XT/HDL/xtegactl.sv} \
     {rtl/KFPC-XT/HDL/xtegactl_resolve.sv} \
     {rtl/KFPC-XT/HDL/xtctl_id.sv} \
-    {zxtres/vivado/generated/zxtres_nettype_wire.sv} \
+    {zxtres/vivado/generated/zxtres_nettype_wire_3.sv} \
     {rtl/KFPC-XT/HDL/ega_bios_loaded_latch.sv} \
     {rtl/KFPC-XT/HDL/keyboard_warm_reset.sv} \
     {rtl/KFPC-XT/HDL/pcjr_ir_kbd.sv} \
