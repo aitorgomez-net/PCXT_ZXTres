@@ -143,7 +143,7 @@ CONF_ENTRIES = [
     opt('P1', 14, 16, 'Display,Full Color,Green,Amber,B&W,Red,Blue,Fuchsia,Purple'),
     opt('P1', 10, 10, 'Composite,Off,On'),
     opt('P1', 21, 21, 'Border,No,Yes'),
-    opt('P1', 22, 22, 'Border CRT offs.,No,Yes'),
+    opt('P1', 22, 22, 'Border CRT offs,No,Yes'),
     opt('P1', 28, 28, 'Frame stacking,Native,Rebuilt'),
     'P1P6,Output;',
     # Video > Output
@@ -190,8 +190,8 @@ CONF_ENTRIES = [
     'P5SJ,ROMBIN,PCjr BIOS:;',
     'P5SE,ROMBIN,EGA BIOS:;',
     'P5SC,ROMBIN,EC00 BIOS:;',
-    'P5SK,JRCBIN,PCjr cartridge 1:;',
-    'P5SL,JRCBIN,PCjr cartridge 2:;',
+    'P5SK,JRCBIN,PCjr cart. 1:;',
+    'P5SL,JRCBIN,PCjr cart. 2:;',
     # Settings
     'P3,Settings;',
     'P3PQ,Info;',
