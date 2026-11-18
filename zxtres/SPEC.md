@@ -112,6 +112,7 @@ The work is on branch `main` and has not run on a board yet.
 | --- | --- |
 | Board logic copied from PCAT-286, not shared through a submodule | The two repositories evolve separately. The copied files are byte-identical except `zxtres_osd.sv`, whose title became a parameter. A fix to one should be copied to the other. |
 | MiST bit allocation in `make_guest.py` (`CONF_ENTRIES`) | One table drives both the `CONF_STR` and the remapping to MiSTer bits, so the two cannot drift. |
+| The Output page (`P1P6`) declared after the BIOS files in `CONF_STR`, and `check_file_entries()` in `make_guest.py` | DeMiSTify's `buildmenu()` counts a page declared inside a page twice when it numbers the entries, and a file entry reads its extensions from the entry with its number: with Output first, every BIOS file took the extensions of the next entry, so *EC00 BIOS* listed only `.JRC` and `.BIN` files, no `.ROM` and *PCjr cart. 2* listed nothing. The generator now repeats the firmware's count and stops on such an order. |
 | MiSTer bits fixed instead of offered: MPU-401 off (bit 88) | No MIDI on the board. |
 | Status word widened to 128 bits in the port's firmware and RTL, not in DeMiSTify or mist-modules | The submodules stay as they are: the firmware replaces DeMiSTify's `statusword.c` at build time and overrides the weak `configstring_getdigit()`, and a separate module reads bytes 9-16 of the command that `user_io` stops at 8. |
 | Joystick type offered with Digital first | The DB9 ports are digital; MiSTer offers Analog first. The OSD value is remapped. |

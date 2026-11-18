@@ -132,6 +132,10 @@ CONF_ENTRIES = [
     # it, so the root pages cannot be listed together. A page inside a page
     # ("P6PP,Video info;") may follow a declaration, which is why Video info
     # comes after Info, as in the PCAT port; it shows on the Output page.
+    # A page inside a page also counts twice in the firmware's count of
+    # entries, which tells a file entry where its extensions are: no file
+    # entry (S) may come after one, so the Output page ("P1P6") is declared
+    # after the BIOS files, still the last row of Video (check_file_entries).
     # Video
     'P1,Video;',
     'P1L,Card;',
@@ -146,16 +150,6 @@ CONF_ENTRIES = [
     opt('P1', 21, 21, 'Border,No,Yes'),
     opt('P1', 22, 22, 'Border CRT offs,No,Yes'),
     opt('P1', 28, 28, 'Frame stacking,Native,Rebuilt'),
-    'P1P6,Output;',
-    # Video > Output
-    'P6L,Position;',
-    opt('P6', 46, 49, 'CRT H offset,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15'),
-    opt('P6', 50, 52, 'CRT V offset,0,1,2,3,4,5,6,7'),
-    'P6L,Output;',
-    opt('P6', 60, 60, 'Scandoubler,Auto,Off'),
-    opt('P6', 34, 35, '350-line CRT,480p 31 kHz,Native,480i 15 kHz,240p 15 kHz'),
-    'P6L,Boot splash;',
-    opt('P6', 8, 9, 'Splash time,5 s,10 s,15 s,0 s'),
     # Audio
     'P2,Audio;',
     'P2L,Sound cards;',
@@ -193,6 +187,16 @@ CONF_ENTRIES = [
     'P5SC,ROMBIN,EC00 BIOS:;',
     'P5SK,JRCBIN,PCjr cart. 1:;',
     'P5SL,JRCBIN,PCjr cart. 2:;',
+    'P1P6,Output;',
+    # Video > Output
+    'P6L,Position;',
+    opt('P6', 46, 49, 'CRT H offset,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15'),
+    opt('P6', 50, 52, 'CRT V offset,0,1,2,3,4,5,6,7'),
+    'P6L,Output;',
+    opt('P6', 60, 60, 'Scandoubler,Auto,Off'),
+    opt('P6', 34, 35, '350-line CRT,480p 31 kHz,Native,480i 15 kHz,240p 15 kHz'),
+    'P6L,Boot splash;',
+    opt('P6', 8, 9, 'Splash time,5 s,10 s,15 s,0 s'),
     # Settings
     'P3,Settings;',
     'P3PQ,Info;',
@@ -209,7 +213,36 @@ CONF_ENTRIES = [
 ]
 
 
+def check_file_entries():
+    """Each file entry (S) must find its own extensions. The firmware's
+    buildmenu() (DeMiSTify/firmware/main.c) numbers the entries of the
+    configuration string, and configstring_matchextension() reads the
+    extensions of the entry with that number; but buildmenu() counts a page
+    declared inside a page ("P1P6,Output;") twice, so a file entry after one
+    would read the extensions of the next entry. This repeats that count."""
+    s = ''.join(CONF_ENTRIES)
+    fields = s.split(';')
+    pos = s.index(';') + 2            # after "PCXT;" and the empty field
+    idx = 1
+    while pos < len(s):
+        while s[pos] == 'P':          # page prefixes and declarations
+            pos += 2
+            if s[pos] == ',':
+                pos = s.index(';', pos) + 1
+            if s[pos] == 'P':
+                idx += 1
+        end = s.find(';', pos)
+        entry = s[pos:end if end >= 0 else len(s)]
+        own = s[:pos].count(';') - 1  # the entry's real number
+        if entry.startswith('S') and idx != own:
+            sys.exit(f'CONF_STR: file entry {entry!r} would take the extensions of '
+                     f'{fields[idx + 1]!r}: declare pages inside pages after it')
+        pos = end + 1 if end >= 0 else len(s)
+        idx += 1
+
+
 def conf_str():
+    check_file_entries()
     return '\n'.join(f'        "{entry}"' + (',' if i + 1 < len(CONF_ENTRIES) else '')
                      for i, entry in enumerate(CONF_ENTRIES))
 
