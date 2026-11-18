@@ -154,8 +154,9 @@ against the machine's own devices, the line doubler, the scan converter, the
 video information, the OSD, the keyboard filter, the keyboard relay with
 the machine's own keyboard converter, the ROM loading queue, the status bits
 64-127 and the serial mouse. The
-whole-board simulation of the PCAT port (`run_bios_sim.sh`) is still to be
-adapted to this machine.
+whole-board simulation (`run_bios_sim.sh`) runs the real controller firmware,
+loads the ROMs from a simulated card, runs the BIOS POST and can walk the OSD
+pages (`+OSD_TOUR`, rendered to PNG by `render_osd_tour.sh`).
 
 ## Credits and licenses
 

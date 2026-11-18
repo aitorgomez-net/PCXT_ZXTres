@@ -144,8 +144,8 @@ the narrower `default_nettype` handling has WNS +0.321 ns, WHS +0.056 ns,
 29.8k LUTs, 17.3k registers, 30 block RAM tiles, no critical warnings. With
 the 128-bit status word (`zxtres_status_ext`, PCjr RAM and Tape sound in the
 OSD) it has WNS +0.102 ns, WHS +0.052 ns, 29.8k LUTs, 17.3k registers, 30
-block RAM tiles, no critical warnings; with the OSD page order fixed, WNS
-+0.098 ns and WHS +0.036 ns. The slack moves from build to build
+block RAM tiles, no critical warnings; with the OSD page order and names fixed,
+WNS +0.093 ns and WHS +0.039 ns. The slack moves from build to build
 by a few hundred picoseconds.
 
 Still to do: build the A200T, and watch the `clk_14_318` to clk_114 crossing,
