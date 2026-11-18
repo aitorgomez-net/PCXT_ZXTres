@@ -84,12 +84,19 @@ the OSD so the BIOS detects it.
    power cycle with the card in starts it browsing the cores folder
    instead).
 
+With the MiST firmware on the middle board, the `.BIT` file of the same
+release can go in the card's `MIST` folder instead of loading the `.ZX3`: the
+core menu shown at power-up with the card in lists it by its file name. The
+`PCXT` folder and its files are the same either way.
+
 Connect a VGA monitor, or a 15 kHz TV through a suitable adapter. Plug the
 PS/2 mouse in before the core starts, or before a reset from the OSD, because
 the converter handshakes with it at that point.
 
 Ready-made `.ZX3` files are in [releases](../releases), named by build date,
-in `A100T-board` for the ZXTRES+ and `A200T-board` for the ZXTRES++.
+in `A100T-board` for the ZXTRES+ and `A200T-board` for the ZXTRES++, each with
+the same build as a `.BIT` file for the core menu of the MiST middle board; a
+file for one board does not load on the other.
 
 ## Keys and the OSD
 
