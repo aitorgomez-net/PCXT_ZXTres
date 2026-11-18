@@ -33,7 +33,7 @@ table [below](#what-the-board-does-not-have) says otherwise.
 
 ## State of the port
 
-**The port has just started.** Nothing has run on a board yet. See
+**First tests on the ZXTRES+ (A100T) board are under way.** See
 [SPEC.md](SPEC.md) for what is built, what is simulated and what remains.
 
 ## What the board does not have
@@ -45,7 +45,6 @@ table [below](#what-the-board-does-not-have) says otherwise.
 | Second SD card as an IDE disk | The one microSD slot belongs to the controller. |
 | Real-time clock from the HPS | The board has none. |
 | Analog joysticks | The DB9 ports give directions and buttons only; the OSD offers Digital first. |
-| Return to the Spectrum core from the OSD | Power cycle the board. |
 | Image files created by the core | The controller can write a file but not create one: `PCXT.CFG` must exist, see below. |
 
 ## Preparing the microSD card
@@ -60,7 +59,7 @@ in the root when there is no such folder.
 | `PCJR.ROM` | The PCjr BIOS, for the PCjr machine. |
 | `EGA.ROM` | The EGA BIOS, for the EGA card. |
 | `EC00.ROM` | The EC00 option ROM: the XT-IDE BIOS, needed for the hard disks. |
-| `PCXT.CFG` | 512 bytes of zeroes, made once. Written by *Save settings* in the OSD; zeroes mean default settings. |
+| `PCXT.CFG` | 512 bytes of zeroes, made once; [releases/PCXT.CFG](../releases/PCXT.CFG) is one. Written by *Save settings* in the OSD; zeroes mean default settings. |
 | Disk and floppy images | Anywhere on the card, chosen in the OSD. Hard disks are `.VHD` or `.IMG`, floppies `.IMG`, `.IMA` or `.VFD`. |
 
 A missing ROM leaves its slot empty: the machine asks only for the BIOS of
@@ -76,17 +75,21 @@ the OSD so the BIOS detects it.
 
 ## Loading the core
 
-1. Copy `PCXT.ZX3` to the card, with the files above.
+1. Copy the `.ZX3` file to the card, with the files above.
 2. In the ZX Spectrum core, press F5 for the NMI browser, select the file and
    load it. The core goes to a temporary flash slot.
-3. To go back to the Spectrum core, power cycle the board.
+3. To go back to the Spectrum core, choose *Back to ZX core* on the OSD page
+   *Settings* and confirm: the FPGA reloads the Spectrum core from the
+   board's flash and starts it straight away, with or without the card (a
+   power cycle with the card in starts it browsing the cores folder
+   instead).
 
 Connect a VGA monitor, or a 15 kHz TV through a suitable adapter. Plug the
 PS/2 mouse in before the core starts, or before a reset from the OSD, because
 the converter handshakes with it at that point.
 
-Ready-made `.ZX3` files will be in [releases](../releases), in `A100T-board`
-for the ZXTRES+ and `A200T-board` for the ZXTRES++.
+Ready-made `.ZX3` files are in [releases](../releases), named by build date,
+in `A100T-board` for the ZXTRES+ and `A200T-board` for the ZXTRES++.
 
 ## Keys and the OSD
 
@@ -107,7 +110,7 @@ stacking, and the *Output* page: CRT offsets, scandoubler, 350-line CRT
 output, splash time, video info), *Audio* (sound cards, PCjr tape sound, levels), *Hardware*
 (CPU type, fake 286 flags, writable BIOS, EMS, UMBs, PCjr RAM, joysticks), *BIOS* (the
 five BIOS files and the two PCjr cartridges) and *Settings* (info, OSD position, save settings, reset to
-defaults), then Reset.
+defaults, back to the ZX core), then Reset.
 
 ## Video outputs
 
@@ -153,7 +156,8 @@ Verilator and Icarus Verilog, from `zxtres/sim`: the IDE and floppy stores
 against the machine's own devices, the line doubler, the scan converter, the
 video information, the OSD, the keyboard filter, the keyboard relay with
 the machine's own keyboard converter, the ROM loading queue, the status bits
-64-127 and the serial mouse. The
+64-127, the serial mouse and the ICAP warm boot of the return to the
+Spectrum core. The
 whole-board simulation (`run_bios_sim.sh`) runs the real controller firmware,
 loads the ROMs from a simulated card, runs the BIOS POST and can walk the OSD
 pages (`+OSD_TOUR`, rendered to PNG by `render_osd_tour.sh`).

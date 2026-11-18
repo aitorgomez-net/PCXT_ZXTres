@@ -101,6 +101,7 @@ module pcxt_zxtres_guest (
     input  logic        CLOCK_50,       // 50 MHz from a global buffer
     input  logic        RESET_N,        // from the DeMiSTify controller
     output logic        LED,
+    output logic        REBOOT_FPGA,    // OSD "Back to ZX core": reload from flash address 0
 
     output logic [12:0] SDRAM_A,
     inout  wire  [15:0] SDRAM_DQ,
@@ -227,6 +228,8 @@ module pcxt_zxtres_guest (
         "P3L,Settings file;",
         "P3T1,Save settings;",
         "P3T2,Reset to defaults;",
+        "P3L,Board;",
+        "P3T\205,Back to ZX core;",
         "T0,Reset;",
         "V,v0.1"
     };
@@ -3341,6 +3344,10 @@ module pcxt_zxtres_guest (
     );
 
     assign LED = pcxt_bios_loaded;
+    // Status bit 69, set by the firmware after the confirmation of "Back to
+    // ZX core": the board top reconfigures the FPGA from the flash through
+    // ICAP (zxtres_pcxt_top.sv), which loads the Spectrum core again.
+    assign REBOOT_FPGA = mist_status[69];
     // 16-bit signed audio; the board top turns it into the sigma-delta and
     // I2S outputs.
     assign DAC_L = audio_mix_l_q;

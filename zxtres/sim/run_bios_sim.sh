@@ -134,6 +134,7 @@ verilator --binary --timing -O2 +1364-2005ext+vg --x-initial fast -Wno-fatal -Wn
   "$out/patched/user_io.v" "$out/patched/data_io.v" zxtres/rtl/zxtres_osd.sv \
   DeMiSTify/templates/demistify/common/joydecoder_neptuno.v \
   DeMiSTify/templates/zxtres/zx3w/sigma_delta_codec.v DeMiSTify/templates/zxtres/zx3w/i2s_sound.v \
+  DeMiSTify/templates/zxtres/zx3w/return_to_core1.v \
   zxtres/rtl/zxtres_ps2_rx.sv zxtres/rtl/zxtres_ps2_key.sv zxtres/rtl/zxtres_ps2_kbd_relay.sv \
   zxtres/rtl/zxtres_ioctl_fifo.sv zxtres/rtl/zxtres_status_ext.sv zxtres/rtl/zxtres_ide_store.sv zxtres/rtl/zxtres_fdd_store.sv \
   zxtres/rtl/zxtres_sd_arb.sv zxtres/rtl/zxtres_vidinfo.sv zxtres/rtl/pcxt_zxtres_guest.sv \

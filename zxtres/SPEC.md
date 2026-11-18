@@ -98,14 +98,13 @@ The work is on branch `main` and has not run on a board yet.
 | F12 credits with the ZXTres art and the port's credits | Done | `credits/msg`, and `credits/msg.bin`, which is the first 8192 rows (four pages) of the binary output of the core's own `credits/msg2hex` |
 | Unit tests of the shared modules | Inherited | `sim/` |
 | `PCXT.CFG` writer for test cards (nine paths of 52 bytes, format `PCXT` version 2, as `overrides.c` reads it) | Done | `sim/make_cfg_file.py` |
+| Return to the Spectrum core: *Back to ZX core* on the Settings page asks first, then the firmware sets status bit 69 (never saved in `PCXT.CFG`) and the board top sends the ICAP warm boot (IPROG, WBSTAR 0) through DeMiSTify's `zx3w/return_to_core1.v`, which reloads the core at flash address 0 | Sim (the ICAP words against an ICAPE2 model, and in the whole-board simulation from the OSD keys to the IPROG, `+OSD_ZXCORE`); on the A100T board it starts the Spectrum core directly, with or without the SD card | `firmware/overrides.c`, guest `CONF_STR`, `rtl/zxtres_pcxt_top.sv`, `sim/run_return_to_core_test.sh` |
 | Whole-board simulation: the real firmware on the GHDL-converted controller reads `PCXT.CFG` and the ROMs from an SD card model, the ROM queue fills the SDRAM model behind the board's pin timing, the machine runs the Turbo XT BIOS 3.1; frames after the line doubler and the OSD; the OSD pages walked with the keyboard (`+OSD_TOUR`) | Sim (see 5.2) | `sim/run_bios_sim.sh`, `sim/zxtres_pcxt_bios_tb.sv`, `sim/render_osd_tour.sh` |
 
 ### 3.2 Not started
 
-- The first board bring-up (the A100T `.ZX3` exists, not tried yet).
-- The A200T build.
-- DisplayPort, I/O timing constraints, and the return to the Spectrum core
-  from the OSD.
+- Trying the A200T build on a ZXTRES++.
+- DisplayPort and I/O timing constraints.
 
 ## 4. Decisions
 
@@ -145,10 +144,15 @@ the narrower `default_nettype` handling has WNS +0.321 ns, WHS +0.056 ns,
 the 128-bit status word (`zxtres_status_ext`, PCjr RAM and Tape sound in the
 OSD) it has WNS +0.102 ns, WHS +0.052 ns, 29.8k LUTs, 17.3k registers, 30
 block RAM tiles, no critical warnings; with the OSD page order and names fixed,
-WNS +0.093 ns and WHS +0.039 ns. The slack moves from build to build
-by a few hundred picoseconds.
+WNS +0.093 ns and WHS +0.039 ns; with the return to the Spectrum core, WNS
++0.210 ns and WHS +0.028 ns. The slack moves from build to build by a few
+hundred picoseconds.
 
-Still to do: build the A200T, and watch the `clk_14_318` to clk_114 crossing,
+The A200T build (`build_pcxt.sh A200T`, `xc7a200tfbg484-2`) of the same
+sources has WNS +0.343 ns, WHS +0.051 ns, 29.8k LUTs, 17.4k registers, 30
+block RAM tiles and no critical warnings; it has not been tried on a board.
+
+Still to do: watch the `clk_14_318` to clk_114 crossing,
 which has little margin of its own.
 
 ### 5.1 First board bring-up (P0, S)
@@ -212,5 +216,6 @@ remaining steps need long runs:
   - the keyboard relay with the machine's `KFPS2KB`;
   - the ROM loading queue;
   - the status bits 64-127 beside `user_io`;
-  - the serial mouse.
+  - the serial mouse;
+  - the ICAP warm boot of the return to the Spectrum core.
 - A Vivado build with no critical warnings and positive WNS and WHS.

@@ -17,6 +17,8 @@
 //   +STOP_MS=<ms>    end the run this long after the start
 //   +OSD_TOUR        instead of the POST, open the OSD as soon as the machine
 //                    runs and save its pages (tour_*.osd, see osd_tour)
+//   +OSD_ZXCORE      instead of the POST, choose Settings, "Back to ZX core"
+//                    and Yes, and check the ICAP warm boot (see osd_zxcore)
 //
 // CPU writes to B8000-BFFFF are mirrored into a shadow text buffer, which the
 // prompt search uses and which is printed with each frame and, when it has
@@ -355,6 +357,28 @@ module zxtres_pcxt_bios_tb;
         tour_key(16'h0076);                              // ESC
         osd_shot("tour_after_esc");
     endtask
+    // +OSD_ZXCORE: Settings, "Back to ZX core", the confirmation page, Yes;
+    // the firmware sets status bit 69 and the board top sends the ICAP warm
+    // boot (IPROG from flash address 0) to the ICAPE2 model.
+    task automatic osd_zxcore;
+        tour_log = 1;
+        osd_settle();
+        osd_open_retry();
+        osd_choose("Settings");
+        osd_shot("zxcore_settings");
+        if (dut.u_return_to_core.el_icap.ICAP_i.iprog) $display("OSD_ZXCORE: IPROG before the request");
+        osd_choose("Back to ZX core");
+        osd_shot("zxcore_confirm");
+        if (dut.u_return_to_core.el_icap.ICAP_i.iprog) $display("OSD_ZXCORE: IPROG before Yes");
+        osd_choose("Yes");
+        #2ms;
+        if (dut.u_return_to_core.el_icap.ICAP_i.iprog && dut.u_return_to_core.el_icap.ICAP_i.wbstar == 32'h0)
+            $display("[%0t] OSD_ZXCORE_PASS: warm boot from flash address 0", $time);
+        else
+            $display("[%0t] OSD_ZXCORE_FAIL: status bit 69 %0d, iprog %0d, wbstar %08h", $time,
+                     dut.guest.mist_status[69], dut.u_return_to_core.el_icap.ICAP_i.iprog,
+                     dut.u_return_to_core.el_icap.ICAP_i.wbstar);
+    endtask
 
     // ------------------------------------------------------------------
     // Frame capture at the picture's own size, after the line doubler and
@@ -534,6 +558,11 @@ module zxtres_pcxt_bios_tb;
             osd_tour();
             report();
             $display("ZXTRES_PCXT_OSD_TOUR_END");
+            $finish;
+        end
+        if ($test$plusargs("OSD_ZXCORE")) begin
+            osd_zxcore();
+            $display("ZXTRES_PCXT_OSD_ZXCORE_END");
             $finish;
         end
         waited = 0;

@@ -99,6 +99,7 @@ sv=(
   zxtres/rtl/zxtres_ps2_rx.sv
   DeMiSTify/templates/zxtres/zx3w/sigma_delta_codec.v
   DeMiSTify/templates/zxtres/zx3w/i2s_sound.v
+  DeMiSTify/templates/zxtres/zx3w/return_to_core1.v
 )
 includes=()
 # The build options of the MiSTer profile, as Verilog defines for every file

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Draw the OSD pages saved by the board simulation's +OSD_TOUR
-# (zxtres/sim/run_bios_sim.sh +OSD_TOUR) as PNG frames: each tour_*.osd in
-# DIR becomes tour_*.png beside it, the box over a grey 640x400 picture.
+# (zxtres/sim/run_bios_sim.sh +OSD_TOUR or +OSD_ZXCORE) as PNG frames: each .osd in
+# DIR becomes a .png beside it, the box over a grey 640x400 picture.
 #
 #   zxtres/sim/render_osd_tour.sh [DIR]
 #
@@ -20,7 +20,7 @@ verilator --binary --timing -O1 -Wno-fatal -Wno-lint -Wno-style --top-module zxt
   --Mdir "$out/obj" -o osd_sim zxtres/rtl/zxtres_osd.sv zxtres/sim/zxtres_osd_tb.sv \
   > "$out/verilator-build.log" 2>&1 \
   || { grep -E '%Error' "$out/verilator-build.log" | head -20 >&2; exit 1; }
-for page in "$dir"/tour_*.osd; do
+for page in "$dir"/*.osd; do
   name=$(basename "$page")
   cp "$page" "$out/$name"
   (cd "$out" && ./obj/osd_sim +ROWS="$name" > /dev/null)

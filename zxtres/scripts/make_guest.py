@@ -114,8 +114,9 @@ def opt(page, low, high, text):
 #   41 Hercules graphics off, 42-43 OPL2, 44-45 monitor, 46-49 CRT H offset,
 #   50-52 CRT V offset, 53 fake 286 FLAGS, 54 A000 UMB off, 55 UMB off, 56-57
 #   audio 220h, 58 joystick swap, 59 Tandy sound, 60 scandoubler off, 61 Sound
-#   Blaster IRQ, 64-67 PCjr RAM, 68 PCjr tape sound. Bits 64-127 reach the
-#   core through zxtres_status_ext.sv.
+#   Blaster IRQ, 64-67 PCjr RAM, 68 PCjr tape sound, 69 back to the ZX core
+#   (set by the firmware after its confirmation; never saved). Bits 64-127
+#   reach the core through zxtres_status_ext.sv.
 CONF_ENTRIES = [
     'PCXT;;',
     'S3,IMGIMAVFD,Floppy A:;',
@@ -201,6 +202,8 @@ CONF_ENTRIES = [
     'P3L,Settings file;',
     'P3T1,Save settings;',
     'P3T2,Reset to defaults;',
+    'P3L,Board;',
+    f'P3T{bit(69)},Back to ZX core;',
     'T0,Reset;',
     'V,v0.1',
 ]
@@ -229,6 +232,7 @@ module pcxt_zxtres_guest (
     input  logic        CLOCK_50,       // 50 MHz from a global buffer
     input  logic        RESET_N,        // from the DeMiSTify controller
     output logic        LED,
+    output logic        REBOOT_FPGA,    // OSD "Back to ZX core": reload from flash address 0
 
     output logic [12:0] SDRAM_A,
     inout  wire  [15:0] SDRAM_DQ,
@@ -842,6 +846,10 @@ VIDEO_OUT = r'''
     );
 
     assign LED = pcxt_bios_loaded;
+    // Status bit 69, set by the firmware after the confirmation of "Back to
+    // ZX core": the board top reconfigures the FPGA from the flash through
+    // ICAP (zxtres_pcxt_top.sv), which loads the Spectrum core again.
+    assign REBOOT_FPGA = mist_status[69];
     // 16-bit signed audio; the board top turns it into the sigma-delta and
     // I2S outputs.
     assign DAC_L = audio_mix_l_q;

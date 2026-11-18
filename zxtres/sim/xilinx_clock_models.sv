@@ -57,3 +57,44 @@ module ODDR #(
     always @(posedge C) if (CE) Q <= D1;
     always @(negedge C) if (CE) Q <= D2;
 endmodule
+
+// ICAPE2 as the multiboot logic uses it: 32-bit writes only. The words are
+// bit-reversed within each byte on I, as on the device, and are put back
+// here. The model follows the configuration packets far enough to see the
+// warm boot: the sync word, a write of WBSTAR and the IPROG command (CMD
+// register, value 0Fh). `iprog` and `wbstar` tell the testbench what
+// happened; the reconfiguration itself is not modelled.
+module ICAPE2 #(
+    parameter ICAP_WIDTH = "X32",
+    parameter DEVICE_ID = 32'h0,
+    parameter SIM_CFG_FILE_NAME = "NONE"
+) (
+    output wire [31:0] O,
+    input  wire        CLK, CSIB, RDWRB,
+    input  wire [31:0] I
+);
+    assign O = '0;
+    bit        synced = 0, iprog = 0;
+    bit [31:0] wbstar = '1;
+    bit [4:0]  reg_addr;     // register of the pending type 1 write
+    bit        pending = 0;
+    function automatic [31:0] unswap(input [31:0] v);
+        for (int i = 0; i < 32; i++) unswap[(i / 8) * 8 + 7 - i % 8] = v[i];
+    endfunction
+    always @(posedge CLK) if (!CSIB && !RDWRB) begin
+        automatic bit [31:0] w = unswap(I);
+        if (!synced) begin
+            if (w == 32'hAA995566) synced <= 1;
+        end else if (pending) begin
+            pending <= 0;
+            if (reg_addr == 5'h10) wbstar <= w;
+            if (reg_addr == 5'h04 && w[4:0] == 5'h0F && !iprog) begin
+                iprog <= 1;
+                $display("[ICAPE2] IPROG, warm boot from WBSTAR %08h", wbstar);
+            end
+        end else if (w[31:29] == 3'b001 && w[28:27] == 2'b10 && w[10:0] == 11'd1) begin
+            reg_addr <= w[17:13];   // type 1 write of one word
+            pending  <= 1;
+        end
+    end
+endmodule

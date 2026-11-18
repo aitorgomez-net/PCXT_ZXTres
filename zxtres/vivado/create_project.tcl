@@ -59,6 +59,7 @@ set sv [list     {mist-modules/user_io.v} \
     {zxtres/rtl/zxtres_ps2_rx.sv} \
     {DeMiSTify/templates/zxtres/zx3w/sigma_delta_codec.v} \
     {DeMiSTify/templates/zxtres/zx3w/i2s_sound.v} \
+    {DeMiSTify/templates/zxtres/zx3w/return_to_core1.v} \
     {rtl/common/ram.v} \
     {rtl/common/bios.v} \
     {rtl/common/floppy.v} \
