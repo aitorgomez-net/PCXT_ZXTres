@@ -6,7 +6,7 @@
 //
 //   +LINES=n  picture lines (400 or 200)
 //   +PAGE=n   0 main menu, 1 video page, 2 file selector
-//   +ROWS=f   draw the rows saved by zxtres_pcat_bios_tb.sv (+OSD_TOUR) in
+//   +ROWS=f   draw the rows saved by zxtres_pcxt_bios_tb.sv (+OSD_TOUR) in
 //             the file f instead of the mock menu; the output is f.ppm
 //   +POS=n    position of the box: 0 centre, 1 top left, 2 top right,
 //             3 bottom left, 4 bottom right
@@ -38,7 +38,7 @@ module zxtres_osd_tb;
     always_ff @(posedge clk) ce_div <= ce_div + 1'd1;
     wire ce = ce_div == 2'd0;
 
-    zxtres_osd #(.USE_BLANKS(1'b1), .OUT_COLOR_DEPTH(6)) dut (
+    zxtres_osd #(.USE_BLANKS(1'b1), .OUT_COLOR_DEPTH(6), .TITLE_CHARS(11), .TITLE("PCXT ZXTres")) dut (
         .clk_sys(clk), .ce(ce),
         .SPI_SCK(sck), .SPI_SS3(ss3), .SPI_DI(di),
         .R_in(r_in), .G_in(g_in), .B_in(b_in),

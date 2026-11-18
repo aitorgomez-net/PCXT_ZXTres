@@ -97,14 +97,13 @@ The work is on branch `main` and has not run on a board yet.
 | Boot splash: the MiSTer picture with "MiSTer" redrawn as a striped, slanted "ZXTres" (T, r and e from the original word, Z, X and s drawn in the same lettering, white top stripes as in the PCAT-286 splash) | Done | `scripts/make_splash.py`, `splash/splash_320x200.hex`, used by `build_pcxt.sh` in place of `rtl/video/splash_320x200.hex` |
 | F12 credits with the ZXTres art and the port's credits | Done | `credits/msg`, and `credits/msg.bin`, which is the first 8192 rows (four pages) of the binary output of the core's own `credits/msg2hex` |
 | Unit tests of the shared modules | Inherited | `sim/` |
-| `PCXT.CFG` writer for test cards (nine paths of 52 bytes, format `PCXT` version 1, as `overrides.c` reads it) | Done | `sim/make_cfg_file.py` |
+| `PCXT.CFG` writer for test cards (nine paths of 52 bytes, format `PCXT` version 2, as `overrides.c` reads it) | Done | `sim/make_cfg_file.py` |
+| Whole-board simulation: the real firmware on the GHDL-converted controller reads `PCXT.CFG` and the ROMs from an SD card model, the ROM queue fills the SDRAM model behind the board's pin timing, the machine runs the Turbo XT BIOS 3.1; frames after the line doubler and the OSD; the OSD pages walked with the keyboard (`+OSD_TOUR`) | Sim (see 5.2) | `sim/run_bios_sim.sh`, `sim/zxtres_pcxt_bios_tb.sv`, `sim/render_osd_tour.sh` |
 
 ### 3.2 Not started
 
 - The first board bring-up (the A100T `.ZX3` exists, not tried yet).
 - The A200T build.
-- The whole-board simulation: `run_bios_sim.sh` and its testbench were not
-  copied.
 - DisplayPort, I/O timing constraints, and the return to the Spectrum core
   from the OSD.
 
@@ -145,7 +144,8 @@ the narrower `default_nettype` handling has WNS +0.321 ns, WHS +0.056 ns,
 29.8k LUTs, 17.3k registers, 30 block RAM tiles, no critical warnings. With
 the 128-bit status word (`zxtres_status_ext`, PCjr RAM and Tape sound in the
 OSD) it has WNS +0.102 ns, WHS +0.052 ns, 29.8k LUTs, 17.3k registers, 30
-block RAM tiles, no critical warnings. The slack moves from build to build
+block RAM tiles, no critical warnings; with the OSD page order fixed, WNS
++0.098 ns and WHS +0.036 ns. The slack moves from build to build
 by a few hundred picoseconds.
 
 Still to do: build the A200T, and watch the `clk_14_318` to clk_114 crossing,
@@ -165,12 +165,38 @@ Hercules cards.
 
 ### 5.2 Whole-board simulation (P1, M)
 
-Adapt the PCAT-286 `run_bios_sim.sh` and its testbench to this guest:
-- the five ROM slots through the FIFO;
-- the keyboard relay;
-- no CMOS.
+`run_bios_sim.sh` runs the whole board: the firmware loads `PCXT.ROM` and
+`EC00.ROM` through the ROM queue (the BIOS at 35 ms, both by 437 ms), the
+machine leaves reset at 543 ms, and the Turbo XT BIOS 3.1 draws its banner
+and hardware list (8088, CGA, LPT 378h, COM 3F8h and 2F8h, game port, clock)
+in CGA text and counts the RAM test (088K at 3.67 s, CPU at Max). Win+F12
+opens the OSD over that picture. The SDRAM model saw 22.3 million reads and
+1.9 million writes with no protocol or timing error, no DQ contention and no
+read sampled outside the data valid window. The OSD frame showed the main
+page stopping at Video: the page declarations of the configuration string
+were nested (fixed in `make_guest.py`: each page is declared right before
+its entries).
 
-The target is the PCXT BIOS reaching the boot prompt with a CGA picture.
+`run_bios_sim.sh +OSD_TOUR` opens the OSD as soon as the machine runs and
+walks it with the keyboard as a person would, finding each entry by its
+text: the main page, Video, Output, Video info (which shows the core's own
+measure of the picture: 640x200 line doubled, 31.38 kHz and 59.9 Hz at the
+VGA pins), Audio, Hardware, Settings, BIOS, the file selector and ESC back.
+`render_osd_tour.sh` draws each saved page with `zxtres_osd` as a PNG. Small
+ROM files are enough for it, and bring the OSD at 0.27 s instead of 0.54 s.
+Two lessons of the testbench: keys must be held about 5 ms and spaced 20 ms
+or more, as a person types, or the firmware's 8-byte PS/2 ring buffer
+drops some; and Verilator 5.020 does not evaluate again a loop condition
+that calls functions on the design's memories in a timed task, so the
+result is kept in a variable.
+
+The simulation runs at about 2 s of machine time per 100 minutes, so the
+remaining steps need long runs:
+- the POST to the boot prompt: the RAM test counts about 250K per second
+  of machine time (056K at 3.54 s, 088K at 3.67 s), so 640K ends near 6 s,
+  some five hours of simulation;
+- a VHD through the XT-IDE BIOS (`ZXTRES_SIM_VHD`), and a floppy;
+- the Tandy and PCjr machines, EGA and Hercules.
 
 ## 6. Verification
 

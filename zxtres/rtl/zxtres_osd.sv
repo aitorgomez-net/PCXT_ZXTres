@@ -43,8 +43,8 @@ module zxtres_osd #(
 	parameter       OUT_COLOR_DEPTH = 6,
 	parameter       FONT_FILE       = "osd_font.mem",
 	// The fixed title above the menu, centred; at most 31 characters.
-	parameter       TITLE_CHARS     = 15,
-	parameter [8*31-1:0] TITLE      = "PCAT-286 ZXTres"
+	parameter       TITLE_CHARS     = 11,
+	parameter [8*31-1:0] TITLE      = "PCXT ZXTres"
 ) (
 	input        clk_sys,
 	input        ce,
