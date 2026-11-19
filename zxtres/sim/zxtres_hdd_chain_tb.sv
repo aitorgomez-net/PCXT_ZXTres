@@ -113,8 +113,9 @@ module zxtres_hdd_chain_tb;
     assign mgmt_wr   = ide_bus_use ? ide_mgmt_write   : (fdd_bus_use && fdd_mgmt_write);
     assign mgmt_rd   = ide_bus_use ? ide_mgmt_read    : (fdd_bus_use && fdd_mgmt_read);
 
+    logic machine_reset = 1'b1;     // the machine is held in reset while the firmware mounts
     zxtres_ide_store u_ide_store (
-        .clk(clk), .reset(reset),
+        .clk(clk), .reset(reset), .machine_reset(machine_reset),
         .img_mounted(img_mounted[1:0]), .img_size(img_size),
         .sd_rd(ide_sd_rd), .sd_wr(ide_sd_wr), .sd_lba(ide_sd_lba),
         .sd_ack(sd_ack_x[1:0]), .sd_buff_addr(sd_buff_addr),
@@ -364,6 +365,7 @@ module zxtres_hdd_chain_tb;
         mount(1, 0);
         if (hdd1.size() != 0) mount(1, hdd1.size());
         fw_run = 1'b1;
+        machine_reset = 1'b0;
 
         // XT-IDE: wait for the drive, then IDENTIFY
         wait_status(1'b0, st, ok);

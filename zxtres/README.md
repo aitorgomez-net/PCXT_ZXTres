@@ -70,8 +70,8 @@ stays in for the session only, and the machine restarts to see it.
 
 `PCXT.CFG` keeps the OSD settings, the path of each of the four images and of
 the five BIOS files, so the next start mounts them again. Without it, nothing
-is mounted and the defaults apply. After choosing a hard disk, use *Reset* in
-the OSD so the BIOS detects it.
+is mounted and the defaults apply. A hard disk chosen while the machine runs is mounted at the next *Reset & apply* in
+the OSD (until then the machine keeps the one it has), so the BIOS detects it.
 
 ## Loading the core
 
@@ -117,7 +117,7 @@ stacking, and the *Output* page: CRT offsets, scandoubler, 350-line CRT
 output, splash time, video info), *Audio* (sound cards, PCjr tape sound, levels), *Hardware*
 (CPU type, fake 286 flags, writable BIOS, EMS, UMBs, PCjr RAM, joysticks), *BIOS* (the
 five BIOS files and the two PCjr cartridges) and *Settings* (info, OSD position, save settings, reset to
-defaults, cold reboot), then Reset.
+defaults, Reload ZX core), then Reset & apply.
 
 The entries follow the machine and the card chosen, as the MiSTer core's
 menu does: a PCjr has no second drive, hard disk, speed choice, sound cards,

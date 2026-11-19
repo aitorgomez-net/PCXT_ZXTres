@@ -231,7 +231,7 @@ CONF_ENTRIES = [
     'P3T2,Reset to defaults;',
     'P3L,Board;',
     f'P3T{bit(69)},Reload ZX core;',
-    'T0,Reset;',
+    'T0,Reset & apply;',
     'V,v0.1',
 ]
 
@@ -553,8 +553,9 @@ MIST_IO = r'''
     assign mgmt_wr   = ide_bus_use ? ide_mgmt_write   : (fdd_bus_use && fdd_mgmt_write);
     assign mgmt_rd   = ide_bus_use ? ide_mgmt_read    : (fdd_bus_use && fdd_mgmt_read);
     /* verilator lint_off PINCONNECTEMPTY */
+    wire        ide_machine_reset;      // reset_wire, which is declared further down
     zxtres_ide_store u_ide_store (
-        .clk(clk_chipset), .reset(RESET),
+        .clk(clk_chipset), .reset(RESET), .machine_reset(ide_machine_reset),
         .img_mounted(img_mounted[1:0]), .img_size(img_size),
         .sd_rd(ide_sd_rd), .sd_wr(ide_sd_wr), .sd_lba(ide_sd_lba),
         .sd_ack(sd_ack_x[1:0]), .sd_buff_addr(sd_buff_addr),
@@ -1012,7 +1013,9 @@ def generate():
     out += block(lines, '    reg splash_vid_sync1', '        .b_out    (main_b)')
     out += ['    );']
     out.append(VIDEO_OUT)
-    return '\n'.join(out) + '\n'
+    # The hard disks follow the machine's reset: a change of image waits for it
+    return replace('\n'.join(out) + '\n', '    wire video_retime_reset = ',
+                   '    assign ide_machine_reset = reset_wire;\n    wire video_retime_reset = ')
 
 
 def main():

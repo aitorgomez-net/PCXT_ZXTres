@@ -232,7 +232,7 @@ module pcxt_zxtres_guest (
         "P3T2,Reset to defaults;",
         "P3L,Board;",
         "P3T\205,Reload ZX core;",
-        "T0,Reset;",
+        "T0,Reset & apply;",
         "V,v0.1"
     };
 
@@ -876,8 +876,9 @@ module pcxt_zxtres_guest (
     assign mgmt_wr   = ide_bus_use ? ide_mgmt_write   : (fdd_bus_use && fdd_mgmt_write);
     assign mgmt_rd   = ide_bus_use ? ide_mgmt_read    : (fdd_bus_use && fdd_mgmt_read);
     /* verilator lint_off PINCONNECTEMPTY */
+    wire        ide_machine_reset;      // reset_wire, which is declared further down
     zxtres_ide_store u_ide_store (
-        .clk(clk_chipset), .reset(RESET),
+        .clk(clk_chipset), .reset(RESET), .machine_reset(ide_machine_reset),
         .img_mounted(img_mounted[1:0]), .img_size(img_size),
         .sd_rd(ide_sd_rd), .sd_wr(ide_sd_wr), .sd_lba(ide_sd_lba),
         .sd_ack(sd_ack_x[1:0]), .sd_buff_addr(sd_buff_addr),
@@ -1000,6 +1001,7 @@ module pcxt_zxtres_guest (
     wire cart_reset_hold = (cart_reset_count != 18'd0);
 
     wire reset_wire = RESET | status[0] | buttons[1] | !pll_locked | !pll_system_locked  | splashscreen | splash_reset_hold | splash_pending | cart_reset_hold;
+    assign ide_machine_reset = reset_wire;
     wire video_retime_reset = RESET | status[0] | buttons[1] | !pll_locked | !pll_system_locked | splash_pending;
     (* altera_attribute = "-name SYNCHRONIZER_IDENTIFICATION FORCED_IF_ASYNCHRONOUS" *) logic [1:0] video_retime_reset_sync = 2'b11;
     wire video_retime_reset_local = video_retime_reset_sync[1];
