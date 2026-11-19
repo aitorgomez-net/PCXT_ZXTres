@@ -956,16 +956,20 @@ int Menu_AdjustRow(int row, int dir)
 static const char *const cpu_names[4] = {"4.77 MHz", "7.16 MHz", "9.54 MHz", "Max"};
 static const char *const machine_names[3] = {"PCXT", "Tandy 1000", "PCjr"};
 
-static const char *cpu_name(void)
-{
-	return(cpu_names[statusword_get(OPT_CPU, 3)]);
-}
-
 static int machine_index(void)
 {
 	int v = statusword_get(OPT_MACHINE, 3);
 
 	return(v > 2 ? 0 : v);
+}
+
+/* The speed the machine runs at: the PCjr has no speed choice and always runs
+   at 4.77 MHz, whatever the (hidden) option holds, as the core does. */
+static const char *cpu_name(void)
+{
+	if(machine_index() == 2)
+		return(cpu_names[0]);
+	return(cpu_names[statusword_get(OPT_CPU, 3)]);
 }
 
 /* The card in use: the Tandy 1000 and the PCjr have only their CGA. */
@@ -1181,12 +1185,15 @@ int info_page(struct menu_entry *m)
 	inforule(m, i++, "Storage");
 	image = imagename('3');
 	inforow(m, i++, "Floppy A", image[0] == '(' ? C_GREY : C_GREEN, image);
-	image = imagename('4');
-	inforow(m, i++, "Floppy B", image[0] == '(' ? C_GREY : C_GREEN, image);
-	image = imagename('0');
-	inforow(m, i++, "Disk 0", image[0] == '(' ? C_GREY : C_GREEN, image);
-	image = imagename('1');
-	inforow(m, i++, "Disk 1", image[0] == '(' ? C_GREY : C_GREEN, image);
+	if(machine_index() != 2)	/* the PCjr has one drive and no hard disk */
+	{
+		image = imagename('4');
+		inforow(m, i++, "Floppy B", image[0] == '(' ? C_GREY : C_GREEN, image);
+		image = imagename('0');
+		inforow(m, i++, "Disk 0", image[0] == '(' ? C_GREY : C_GREEN, image);
+		image = imagename('1');
+		inforow(m, i++, "Disk 1", image[0] == '(' ? C_GREY : C_GREEN, image);
+	}
 	inforow(m, i++, "Settings", cfg_state == 2 ? C_GREEN : cfg_state ? C_GREY : C_RED,
 		cfg_state == 2 ? "saved on the card" : cfg_state ? "none saved" : "PCXT.CFG missing");
 	return(i);

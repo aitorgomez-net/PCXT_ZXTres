@@ -115,7 +115,7 @@ def hide(n, inverse=False):
     return chr(92) + '%03o' % (0xC0 + n + (0x20 if inverse else 0))
 
 
-HIDE_NOT_PCJR = hide(2)     # no expansion slots, second drive, hard disk, speed choice
+HIDE_NOT_PCJR = hide(2)     # no expansion slots, second drive, hard disk, speed choice, CPU type, Fake 286
 HIDE_CGA_CARD = hide(7)     # CGA/HGC card in use (a Tandy 1000 and a PCjr have it)
 HIDE_EGA_CARD = hide(8)     # EGA card in use
 HIDE_PCXT = hide(10)        # the PCXT only
@@ -148,6 +148,7 @@ CONF_ENTRIES = [
     opt('', 3, 4, 'Machine,IBM PCXT,Tandy 1000,IBM PCjr'),
     opt('', 17, 18, 'CPU Speed,4.77MHz,7.16MHz,9.54MHz,Max', HIDE_NOT_PCJR),
     opt('', 19, 20, 'Write protect,None,A:,B:,A: & B:', HIDE_NOT_PCJR),
+    opt('', 19, 19, 'Write protect,No,Yes', HIDE_PCJR),   # one drive: A: only, as MiSTer
     # A page is declared ("P1,Video;") right before its own entries: the
     # firmware reads a declaration that follows another one as a page inside
     # it, so the root pages cannot be listed together. A page inside a page
@@ -174,21 +175,21 @@ CONF_ENTRIES = [
     # Audio
     'P2,Audio;',
     HIDE_NOT_PCJR + 'P2L,Sound cards;',
-    opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Disabled', HIDE_NOT_PCJR),
-    opt('P2', 42, 43, 'OPL2,Adlib 388h,SB FM 388h/228h,Disabled', HIDE_NOT_PCJR),
-    opt('P2', 59, 59, 'Tandy Sound,Disabled,Enabled', HIDE_PCXT),
+    opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Off', HIDE_NOT_PCJR),
+    opt('P2', 42, 43, 'OPL2,Adlib 388h,SB FM 388h/228h,Off', HIDE_NOT_PCJR),
+    opt('P2', 59, 59, 'Tandy Sound,Off,On', HIDE_PCXT),
     opt('P2', 61, 61, 'SB IRQ,5,7', HIDE_NOT_PCJR),
     HIDE_PCJR + 'P2L,PCjr;',
-    opt('P2', 68, 68, 'Tape sound,Disabled,Enabled', HIDE_PCJR),
+    opt('P2', 68, 68, 'Tape sound,Off,On', HIDE_PCJR),
     'P2L,Levels;',
     opt('P2', 32, 33, 'Speaker Volume,1,2,3,4'),
     opt('P2', 36, 37, 'Audio Boost,No,2x,4x'),
     opt('P2', 38, 39, 'Stereo Mix,none,25%,50%,100%'),
     # Hardware
     'P4,Hardware;',
-    'P4L,CPU;',
-    opt('P4', 7, 7, 'CPU Type,8088,8086'),
-    opt('P4', 53, 53, 'Fake 286 FLAGS,Off,On'),
+    HIDE_NOT_PCJR + 'P4L,CPU;',
+    opt('P4', 7, 7, 'CPU Type,8088,8086', HIDE_NOT_PCJR),
+    opt('P4', 53, 53, 'Fake 286 FLAGS,Off,On', HIDE_NOT_PCJR),
     opt('P4', 30, 31, 'BIOS Writable,None,EC00,Main,All', HIDE_NOT_PCJR),
     'P4L,Memory;',
     opt('P4', 5, 5, 'EMS D000-DFFF,Enabled,Disabled', HIDE_NOT_PCJR),
@@ -196,9 +197,9 @@ CONF_ENTRIES = [
     opt('P4', 54, 54, 'A000 UMB,Enabled,Disabled', HIDE_A000),
     opt('P4', 64, 67, 'PCjr RAM,128K,192K,256K,320K,384K,448K,512K,576K,640K', HIDE_PCJR),
     'P4L,Joysticks;',
-    opt('P4', 23, 24, 'Joystick 1,Digital,Analog,Disabled'),
-    opt('P4', 25, 26, 'Joystick 2,Digital,Analog,Disabled'),
-    opt('P4', 27, 27, 'Sync to CPU,No,Yes'),
+    opt('P4', 23, 24, 'Joystick 1,Digital,Analog,Off'),
+    opt('P4', 25, 26, 'Joystick 2,Digital,Analog,Off'),
+    opt('P4', 27, 27, 'Sync to CPU,No,Yes', HIDE_NOT_PCJR),
     opt('P4', 58, 58, 'Swap Joysticks,No,Yes'),
     # BIOS
     'P5,BIOS;',
