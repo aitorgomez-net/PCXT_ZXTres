@@ -529,7 +529,7 @@ char *autoboot()
 }
 
 /* Settings page: "T1" saves the settings, "T2" returns to the defaults and
-   bit 69 ("Back to ZX core") makes the board top reload the FPGA from the
+   bit 69 ("Reload ZX core") makes the board top reload the FPGA from the
    flash, which brings back the Spectrum core. All three ask first, on a page
    of their own (MENUPAGE_CONFIRM, built here and selected by a hook in
    main.c, see expand_demistify_osd.py). */
@@ -547,7 +547,7 @@ int confirm_page(struct menu_entry *m)
 	void confirm_no(int row);
 
 	strcpy(m[0].label, confirm_bit == SAVE_BIT ? "Save settings now?"
-		: confirm_bit == ZXCORE_BIT ? "Back to the ZX core?" : "Reset all settings?");
+		: confirm_bit == ZXCORE_BIT ? "Cold reboot now?" : "Reset all settings?");
 	m[0].action = 0;
 	strcpy(m[1].label, "Yes");
 	m[1].action = MENU_ACTION(&confirm_yes);
@@ -904,6 +904,32 @@ void Menu_DrawRow(int row, int selected, struct menu_entry *m)
 		ps(l);
 	}
 	OsdWriteEnd();
+}
+
+/* Which entries of the OSD apply to the machine chosen, for the flag bytes
+   0xC0+n and 0xE0+n of the configuration string (expand_demistify_osd.py): bit n
+   of the result is set while the entries flagged 0xC0+n are shown. The bits
+   are the ones of the MiSTer core's status_menumask (PCXT.sv):
+     0  always            1  not an EGA card, not a PCjr (A000 UMB)
+     2  not a PCjr        7  CGA/HGC card in use (a Tandy or PCjr has it)
+     8  EGA card in use   10  PCXT       11  Tandy 1000
+    13  PCXT with the CGA/HGC card       14  PCjr */
+unsigned int menu_mask(void)
+{
+	unsigned int machine = statusword_get(OPT_MACHINE, 3);
+	unsigned int ega = machine == 0 && statusword_get(OPT_CARD, 1);
+	unsigned int pcjr = machine == 2;
+	unsigned int m = 1;
+
+	m |= (!ega && !pcjr) << 1;
+	m |= (!pcjr) << 2;
+	m |= (!ega) << 7;
+	m |= ega << 8;
+	m |= (machine == 0) << 10;
+	m |= (machine == 1) << 11;
+	m |= (machine == 0 && !ega) << 13;
+	m |= pcjr << 14;
+	return(m);
 }
 
 /* Left and right change the option under the cursor. */

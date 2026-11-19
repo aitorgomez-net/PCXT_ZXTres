@@ -78,7 +78,7 @@ the OSD so the BIOS detects it.
 1. Copy the `.ZX3` file to the card, with the files above.
 2. In the ZX Spectrum core, press F5 for the NMI browser, select the file and
    load it. The core goes to a temporary flash slot.
-3. To go back to the Spectrum core, choose *Back to ZX core* on the OSD page
+3. To go back to the Spectrum core, choose *Reload ZX core* on the OSD page
    *Settings* and confirm: the FPGA reloads the Spectrum core from the
    board's flash and starts it straight away, with or without the card (a
    power cycle with the card in starts it browsing the cores folder
@@ -117,7 +117,15 @@ stacking, and the *Output* page: CRT offsets, scandoubler, 350-line CRT
 output, splash time, video info), *Audio* (sound cards, PCjr tape sound, levels), *Hardware*
 (CPU type, fake 286 flags, writable BIOS, EMS, UMBs, PCjr RAM, joysticks), *BIOS* (the
 five BIOS files and the two PCjr cartridges) and *Settings* (info, OSD position, save settings, reset to
-defaults, back to the ZX core), then Reset.
+defaults, cold reboot), then Reset.
+
+The entries follow the machine and the card chosen, as the MiSTer core's
+menu does: a PCjr has no second drive, hard disk, speed choice, sound cards,
+expansion memory, writable BIOS or EC00 BIOS, and shows its own RAM, tape
+sound, BIOS and cartridges; the BIOS file, the sound and the video options of
+the PCXT and of the Tandy 1000 show for that machine only, and the CGA
+options (composite, border, frame stacking) and the monitor of the EGA card
+show for their card.
 
 ## Video outputs
 
@@ -125,7 +133,7 @@ defaults, back to the ZX core), then Reset.
 | --- | --- |
 | 200-line CGA, Tandy, PCjr and EGA modes | Doubled to 31.4 kHz, 640x480 at about 60 Hz |
 | 350-line EGA and Hercules/MDA | `350-line CRT`: *480p 31 kHz* (720x480 at 59.94 Hz, the default), *Native*, *480i 15 kHz* or *240p 15 kHz* |
-| 15 kHz output | *Scandoubler: Off* leaves the 200-line modes at 15.7 kHz with +HSync and +VSync |
+| 15 kHz output | *Scandoubler: Off* leaves the 200-line modes at 15.7 kHz with +HSync and +VSync; the VSync is held to 3 lines, since the CGA's own is 16 and a VGA monitor that takes the picture as 480i does not accept it |
 
 ## Building
 

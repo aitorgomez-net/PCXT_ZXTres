@@ -8,10 +8,12 @@ module zxtres_linedouble_tb;
     integer lines = 200;
     integer period = 4;       // clocks per dot
     integer off = 0;          // +OFF=1: scandoubler off
+    integer vslines = 2;      // +VSLINES=n: the input's VSync, in lines (16 for a CGA's 6845)
     initial begin
         if ($value$plusargs("LINES=%d", lines)) ;
         if ($value$plusargs("PERIOD=%d", period)) ;
         if ($value$plusargs("OFF=%d", off)) ;
+        if ($value$plusargs("VSLINES=%d", vslines)) ;
     end
 
     logic clk = 0;
@@ -34,7 +36,7 @@ module zxtres_linedouble_tb;
         hb <= h >= 640;
         hs <= h >= 700 && h < 780;
         vb <= v >= lines;
-        vs <= !(v >= lines + 10 && v < lines + 12);
+        vs <= !(v >= lines + 10 && v < lines + 10 + vslines);
         if (h == 911) begin
             h <= 0;
             if (v == lines + 61) begin v <= 0; frames <= frames + 1; end
@@ -56,9 +58,19 @@ module zxtres_linedouble_tb;
     integer last_hs = 0, hs_period = 0, now = 0;
     integer out_lines = 0, out_dots = 0, max_dots = 0, lines_frame = 0;
     logic hbo_q = 1, vbo_q = 1, hsp_q = 0;
+    // The VSync pulse at the pins, in clocks: the level that is not the one of the picture.
+    logic vs_idle_m = 1;
+    integer vs_edge = 0, vs_width = 0;
+    logic vsp_q = 1;
     always_ff @(posedge clk) begin
         now <= now + 1;
         hsp_q <= hsp;
+        vsp_q <= vsp;
+        if (ceo && !hbo && !vbo) vs_idle_m <= vsp;
+        if (frames >= 3 && frames < 5 && vsp != vsp_q) begin
+            if (vsp == vs_idle_m) vs_width <= now - vs_edge;
+            else vs_edge <= now;
+        end
         if (frames >= 3 && frames < 5) begin
             if (hsp_q != hsp && !hsp) begin hs_period <= now - last_hs; last_hs <= now; end
             if (ceo && !hbo && !vbo) out_dots <= out_dots + 1;
@@ -73,8 +85,9 @@ module zxtres_linedouble_tb;
 
     initial begin
         wait (frames == 5);
-        $display("LINEDOUBLE_TB lines=%0d period=%0d double=%b hs_period_clk=%0d active_lines_in_2_frames=%0d max_dots_per_line=%0d hs_pin_idle=%b vs_pin_idle=%b",
-                 lines, period, dbl, hs_period, lines_frame, max_dots, hsp, vsp);
+        $display("LINEDOUBLE_TB lines=%0d period=%0d double=%b hs_period_clk=%0d active_lines_in_2_frames=%0d max_dots_per_line=%0d hs_pin_idle=%b vs_pin_idle=%b vs_pin_lines_x10=%0d",
+                 lines, period, dbl, hs_period, lines_frame, max_dots, hsp, vsp,
+                 hs_period ? vs_width * 10 / hs_period : 0);
         $finish;
     end
 endmodule

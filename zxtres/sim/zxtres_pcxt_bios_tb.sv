@@ -17,7 +17,7 @@
 //   +STOP_MS=<ms>    end the run this long after the start
 //   +OSD_TOUR        instead of the POST, open the OSD as soon as the machine
 //                    runs and save its pages (tour_*.osd, see osd_tour)
-//   +OSD_ZXCORE      instead of the POST, choose Settings, "Back to ZX core"
+//   +OSD_ZXCORE      instead of the POST, choose Settings, "Reload ZX core"
 //                    and Yes, and check the ICAP warm boot (see osd_zxcore)
 //
 // CPU writes to B8000-BFFFF are mirrored into a shadow text buffer, which the
@@ -357,7 +357,7 @@ module zxtres_pcxt_bios_tb;
         tour_key(16'h0076);                              // ESC
         osd_shot("tour_after_esc");
     endtask
-    // +OSD_ZXCORE: Settings, "Back to ZX core", the confirmation page, Yes;
+    // +OSD_ZXCORE: Settings, "Reload ZX core", the confirmation page, Yes;
     // the firmware sets status bit 69 and the board top sends the ICAP warm
     // boot (IPROG from flash address 0) to the ICAPE2 model.
     task automatic osd_zxcore;
@@ -367,7 +367,7 @@ module zxtres_pcxt_bios_tb;
         osd_choose("Settings");
         osd_shot("zxcore_settings");
         if (dut.u_return_to_core.el_icap.ICAP_i.iprog) $display("OSD_ZXCORE: IPROG before the request");
-        osd_choose("Back to ZX core");
+        osd_choose("Reload ZX core");
         osd_shot("zxcore_confirm");
         if (dut.u_return_to_core.el_icap.ICAP_i.iprog) $display("OSD_ZXCORE: IPROG before Yes");
         osd_choose("Yes");
@@ -531,6 +531,42 @@ module zxtres_pcxt_bios_tb;
             dump_screen("stop");
             $finish;
         end
+    end
+
+    // Timing of the VGA sync pins, printed once per frame with +SYNCMON:
+    // the polarity, the line period and width, the frame length in lines
+    // and the width of the vertical sync in lines.
+    longint sm_hs_rise = 0, sm_hs_fall = 0, sm_vs_rise = 0, sm_vs_fall = 0;
+    longint sm_hs_period = 0, sm_hs_width = 0, sm_lines = 0, sm_vs_lines = 0;
+    logic sm_hs_q = 1'b1, sm_vs_q = 1'b1;
+    int sm_frames = 0;
+    always @(vga_hs) begin
+        if (vga_hs && !sm_hs_q) begin
+            sm_hs_period = $time - sm_hs_rise;
+            sm_hs_rise = $time;
+            sm_lines++;
+        end
+        if (!vga_hs && sm_hs_q) begin
+            sm_hs_width = $time - sm_hs_rise;
+            sm_hs_fall = $time;
+        end
+        sm_hs_q = vga_hs;
+    end
+    always @(vga_vs) begin
+        if (!vga_vs && sm_vs_q) begin
+            sm_vs_fall = $time;
+            sm_vs_lines = sm_lines;
+        end
+        if (vga_vs && !sm_vs_q) begin
+            sm_vs_rise = $time;
+            sm_vs_lines = sm_lines - sm_vs_lines;
+            if ($test$plusargs("SYNCMON") && sm_frames % 20 == 0)
+                $display("[syncmon] t=%0d ns hs_period=%0d ns hs_high=%0d ns vs_low=%0d ns (%0d lines) idle_hs=%b idle_vs=%b frame_lines=%0d",
+                         $time, sm_hs_period, sm_hs_width, sm_vs_rise - sm_vs_fall, sm_vs_lines, vga_hs, vga_vs, sm_lines);
+            sm_frames++;
+            sm_lines = 0;
+        end
+        sm_vs_q = vga_vs;
     end
 
     task automatic report;

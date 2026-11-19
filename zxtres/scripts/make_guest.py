@@ -32,6 +32,7 @@ producing a silently different guest. With --check the generated text is
 compared with the committed file.
 """
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -100,8 +101,28 @@ def bit(n):
     sys.exit(f'status bit {n} has no character in the configuration string')
 
 
-def opt(page, low, high, text):
-    return f'{page}O{bit(low)}{bit(high)},{text};'
+def opt(page, low, high, text, h=''):
+    """An option entry; h is its hide flag (see HIDE)."""
+    return f'{h}{page}O{bit(low)}{bit(high)},{text};'
+
+
+# Hide flags: an entry that starts with a flag byte, 0xC0+n, is shown only while bit n
+# of menu_mask() (firmware/overrides.c) is set (0xE0+n: only while it is clear), as the
+# MiSTer core's entries are with its status_menumask. One byte each, as the string the
+# core answers with cannot pass 2047 bytes (user_io's byte counter has 11 bits). They
+# follow the machine chosen and the card:
+def hide(n, inverse=False):
+    return chr(92) + '%03o' % (0xC0 + n + (0x20 if inverse else 0))
+
+
+HIDE_NOT_PCJR = hide(2)     # no expansion slots, second drive, hard disk, speed choice
+HIDE_CGA_CARD = hide(7)     # CGA/HGC card in use (a Tandy 1000 and a PCjr have it)
+HIDE_EGA_CARD = hide(8)     # EGA card in use
+HIDE_PCXT = hide(10)        # the PCXT only
+HIDE_TANDY = hide(11)       # the Tandy 1000 only
+HIDE_PCXT_CGA = hide(13)    # the PCXT with the CGA/HGC card
+HIDE_PCJR = hide(14)        # the PCjr only
+HIDE_A000 = hide(1)         # not a PCjr, not an EGA card
 
 
 # MiST status bits of this OSD (see HEADER for the MiSTer bits they feed):
@@ -120,13 +141,13 @@ def opt(page, low, high, text):
 CONF_ENTRIES = [
     'PCXT;;',
     'S3,IMGIMAVFD,Floppy A:;',
-    'S4,IMGIMAVFD,Floppy B:;',
-    'S0,VHDIMG,Hard disk 0:;',
-    'S1,VHDIMG,Hard disk 1:;',
+    HIDE_NOT_PCJR + 'S4,IMGIMAVFD,Floppy B:;',
+    HIDE_NOT_PCJR + 'S0,VHDIMG,Hard disk 0:;',
+    HIDE_NOT_PCJR + 'S1,VHDIMG,Hard disk 1:;',
     'L,Machine;',
     opt('', 3, 4, 'Machine,IBM PCXT,Tandy 1000,IBM PCjr'),
-    opt('', 17, 18, 'CPU Speed,4.77MHz,7.16MHz,9.54MHz,Max'),
-    opt('', 19, 20, 'Write protect,None,A:,B:,A: & B:'),
+    opt('', 17, 18, 'CPU Speed,4.77MHz,7.16MHz,9.54MHz,Max', HIDE_NOT_PCJR),
+    opt('', 19, 20, 'Write protect,None,A:,B:,A: & B:', HIDE_NOT_PCJR),
     # A page is declared ("P1,Video;") right before its own entries: the
     # firmware reads a declaration that follows another one as a page inside
     # it, so the root pages cannot be listed together. A page inside a page
@@ -138,26 +159,27 @@ CONF_ENTRIES = [
     # after the BIOS files, still the last row of Video (check_file_entries).
     # Video
     'P1,Video;',
-    'P1L,Card;',
-    opt('P1', 6, 6, 'Video card,CGA/HGC,EGA'),
-    opt('P1', 44, 45, 'Monitor,5154/ECD,5153/CGA,5151/MDA'),
-    opt('P1', 29, 29, '1st video,CGA,Hercules'),
-    opt('P1', 40, 40, 'CGA graphics,Yes,No'),
-    opt('P1', 41, 41, 'HGC graphics,Yes,No'),
+    HIDE_PCXT + 'P1L,Card;',
+    opt('P1', 6, 6, 'Video card,CGA/HGC,EGA', HIDE_PCXT),
+    opt('P1', 44, 45, 'Monitor,5154/ECD,5153/CGA,5151/MDA', HIDE_EGA_CARD),
+    opt('P1', 29, 29, '1st video,CGA,Hercules', HIDE_PCXT_CGA),
+    opt('P1', 40, 40, 'CGA graphics,Yes,No', HIDE_PCXT_CGA),
+    opt('P1', 41, 41, 'HGC graphics,Yes,No', HIDE_PCXT_CGA),
     'P1L,Picture;',
     opt('P1', 14, 16, 'Display,Full Color,Green,Amber,B&W,Red,Blue,Fuchsia,Purple'),
-    opt('P1', 10, 10, 'Composite,Off,On'),
-    opt('P1', 21, 21, 'Border,No,Yes'),
-    opt('P1', 22, 22, 'Border CRT offs,No,Yes'),
-    opt('P1', 28, 28, 'Frame stacking,Native,Rebuilt'),
+    opt('P1', 10, 10, 'Composite,Off,On', HIDE_CGA_CARD),
+    opt('P1', 21, 21, 'Border,No,Yes', HIDE_CGA_CARD),
+    opt('P1', 22, 22, 'Border CRT offs,No,Yes', HIDE_CGA_CARD),
+    opt('P1', 28, 28, 'Frame stacking,Native,Rebuilt', HIDE_CGA_CARD),
     # Audio
     'P2,Audio;',
-    'P2L,Sound cards;',
-    opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Disabled'),
-    opt('P2', 42, 43, 'OPL2,Adlib 388h,SB FM 388h/228h,Disabled'),
-    opt('P2', 59, 59, 'Tandy Sound,Disabled,Enabled'),
-    opt('P2', 61, 61, 'SB IRQ,5,7'),
-    opt('P2', 68, 68, 'Tape sound,Disabled,Enabled'),
+    HIDE_NOT_PCJR + 'P2L,Sound cards;',
+    opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Disabled', HIDE_NOT_PCJR),
+    opt('P2', 42, 43, 'OPL2,Adlib 388h,SB FM 388h/228h,Disabled', HIDE_NOT_PCJR),
+    opt('P2', 59, 59, 'Tandy Sound,Disabled,Enabled', HIDE_PCXT),
+    opt('P2', 61, 61, 'SB IRQ,5,7', HIDE_NOT_PCJR),
+    HIDE_PCJR + 'P2L,PCjr;',
+    opt('P2', 68, 68, 'Tape sound,Disabled,Enabled', HIDE_PCJR),
     'P2L,Levels;',
     opt('P2', 32, 33, 'Speaker Volume,1,2,3,4'),
     opt('P2', 36, 37, 'Audio Boost,No,2x,4x'),
@@ -167,12 +189,12 @@ CONF_ENTRIES = [
     'P4L,CPU;',
     opt('P4', 7, 7, 'CPU Type,8088,8086'),
     opt('P4', 53, 53, 'Fake 286 FLAGS,Off,On'),
-    opt('P4', 30, 31, 'BIOS Writable,None,EC00,Main,All'),
+    opt('P4', 30, 31, 'BIOS Writable,None,EC00,Main,All', HIDE_NOT_PCJR),
     'P4L,Memory;',
-    opt('P4', 5, 5, 'EMS D000-DFFF,Enabled,Disabled'),
-    opt('P4', 55, 55, 'UMB C400-CFFF,Enabled,Disabled'),
-    opt('P4', 54, 54, 'A000 UMB,Enabled,Disabled'),
-    opt('P4', 64, 67, 'PCjr RAM,128K,192K,256K,320K,384K,448K,512K,576K,640K'),
+    opt('P4', 5, 5, 'EMS D000-DFFF,Enabled,Disabled', HIDE_NOT_PCJR),
+    opt('P4', 55, 55, 'UMB C400-CFFF,Enabled,Disabled', HIDE_NOT_PCJR),
+    opt('P4', 54, 54, 'A000 UMB,Enabled,Disabled', HIDE_A000),
+    opt('P4', 64, 67, 'PCjr RAM,128K,192K,256K,320K,384K,448K,512K,576K,640K', HIDE_PCJR),
     'P4L,Joysticks;',
     opt('P4', 23, 24, 'Joystick 1,Digital,Analog,Disabled'),
     opt('P4', 25, 26, 'Joystick 2,Digital,Analog,Disabled'),
@@ -180,13 +202,13 @@ CONF_ENTRIES = [
     opt('P4', 58, 58, 'Swap Joysticks,No,Yes'),
     # BIOS
     'P5,BIOS;',
-    'P5SB,ROMBIN,PCXT BIOS:;',
-    'P5ST,ROMBIN,Tandy BIOS:;',
-    'P5SJ,ROMBIN,PCjr BIOS:;',
-    'P5SE,ROMBIN,EGA BIOS:;',
-    'P5SC,ROMBIN,EC00 BIOS:;',
-    'P5SK,JRCBIN,PCjr cart. 1:;',
-    'P5SL,JRCBIN,PCjr cart. 2:;',
+    HIDE_PCXT + 'P5SB,ROMBIN,PCXT BIOS:;',
+    HIDE_TANDY + 'P5ST,ROMBIN,Tandy BIOS:;',
+    HIDE_PCJR + 'P5SJ,ROMBIN,PCjr BIOS:;',
+    HIDE_EGA_CARD + 'P5SE,ROMBIN,EGA BIOS:;',
+    HIDE_NOT_PCJR + 'P5SC,ROMBIN,EC00 BIOS:;',
+    HIDE_PCJR + 'P5SK,JRCBIN,PCjr cart. 1:;',
+    HIDE_PCJR + 'P5SL,JRCBIN,PCjr cart. 2:;',
     'P1P6,Output;',
     # Video > Output
     'P6L,Position;',
@@ -207,7 +229,7 @@ CONF_ENTRIES = [
     'P3T1,Save settings;',
     'P3T2,Reset to defaults;',
     'P3L,Board;',
-    f'P3T{bit(69)},Back to ZX core;',
+    f'P3T{bit(69)},Reload ZX core;',
     'T0,Reset;',
     'V,v0.1',
 ]
@@ -222,14 +244,22 @@ def check_file_entries():
     would read the extensions of the next entry. This repeats that count."""
     s = ''.join(CONF_ENTRIES)
     fields = s.split(';')
+
+    def skip_flags(p):                # hide flags are escapes of four characters
+        while s[p] == chr(92):
+            p += 4
+        return p
+
     pos = s.index(';') + 2            # after "PCXT;" and the empty field
     idx = 1
     while pos < len(s):
+        pos = skip_flags(pos)
         while s[pos] == 'P':          # page prefixes and declarations
             pos += 2
             if s[pos] == ',':
                 pos = s.index(';', pos) + 1
-            if s[pos] == 'P':
+            pos = skip_flags(pos)
+            if s[pos] == 'P':         # the next entry's page, or a page inside a page
                 idx += 1
         end = s.find(';', pos)
         entry = s[pos:end if end >= 0 else len(s)]
@@ -241,8 +271,23 @@ def check_file_entries():
         idx += 1
 
 
+CONF_STR_LIMIT = 2047         # user_io.v: byte_cnt has 11 bits and stops there
+
+
+def conf_str_length():
+    """The length of the string the core answers the firmware with, in bytes."""
+    n = 0
+    for entry in CONF_ENTRIES:
+        n += len(re.sub(re.escape(chr(92)) + '[0-7]{3}', 'x', entry))
+    return n
+
+
 def conf_str():
     check_file_entries()
+    n = conf_str_length()
+    if n > CONF_STR_LIMIT:
+        sys.exit(f'CONF_STR is {n} bytes: user_io.v serves 2047 at most and the firmware '
+                 f'would read the last byte for ever. Shorten the entries.')
     return '\n'.join(f'        "{entry}"' + (',' if i + 1 < len(CONF_ENTRIES) else '')
                      for i, entry in enumerate(CONF_ENTRIES))
 
@@ -265,7 +310,7 @@ module pcxt_zxtres_guest (
     input  logic        CLOCK_50,       // 50 MHz from a global buffer
     input  logic        RESET_N,        // from the DeMiSTify controller
     output logic        LED,
-    output logic        REBOOT_FPGA,    // OSD "Back to ZX core": reload from flash address 0
+    output logic        REBOOT_FPGA,    // OSD "Reload ZX core": reload from flash address 0
 
     output logic [12:0] SDRAM_A,
     inout  wire  [15:0] SDRAM_DQ,
@@ -879,8 +924,8 @@ VIDEO_OUT = r'''
     );
 
     assign LED = pcxt_bios_loaded;
-    // Status bit 69, set by the firmware after the confirmation of "Back to
-    // ZX core": the board top reconfigures the FPGA from the flash through
+    // Status bit 69, set by the firmware after the confirmation of "Cold
+    // Reboot": the board top reconfigures the FPGA from the flash through
     // ICAP (zxtres_pcxt_top.sv), which loads the Spectrum core again.
     assign REBOOT_FPGA = mist_status[69];
     // 16-bit signed audio; the board top turns it into the sigma-delta and

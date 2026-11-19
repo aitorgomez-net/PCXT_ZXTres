@@ -24,3 +24,6 @@ verilator --binary --timing -O1 -Wno-fatal -Wno-lint -Wno-style --top-module zxt
 # Scandoubler off: the 200-line picture is not doubled, and leaves with +HSync, +VSync (idle low).
 "$out/obj/sim" +LINES=200 +PERIOD=4 +OFF=1
 
+# A CGA's 6845 VSync is 16 lines: undoubled it is held to 3 (vs_pin_lines_x10 of about 30), doubled to 7 lines of 31 kHz.
+"$out/obj/sim" +LINES=200 +PERIOD=4 +OFF=1 +VSLINES=16
+"$out/obj/sim" +LINES=200 +PERIOD=4 +VSLINES=16

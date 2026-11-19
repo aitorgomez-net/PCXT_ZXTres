@@ -125,19 +125,24 @@ always @(posedge clk)
 
 // A doubled VSync lasts at most 7 lines. The CGA/EGA ones are 3 lines, 6 once
 // doubled; the VGA 13h TV raster has 16, which doubled is a millisecond, more
-// than monitors take for a 31.4 kHz picture.
+// than monitors take for a 31.4 kHz picture. The 15.7 kHz picture that is not
+// doubled (scandoubler off) is held to 3 lines: the CGA's 6845 makes a VSync
+// of 16 lines, which a VGA monitor that takes the picture as 480i or 240p does
+// not accept, and a CGA monitor or a TV does not mind the 3 lines of the
+// standard.
 wire hs_act = hs_idle ? !hs_out : hs_out;
 wire vs_act = vs_idle ? !vs_out : vs_out;
 reg  hs_act_q, vs_cut;
 reg [2:0] vs_n;
+wire [2:0] vs_lim = dbl ? 3'd6 : 3'd2;
 always @(posedge clk) begin
 	hs_act_q <= hs_act;
-	if (reset || !dbl || !vs_act) begin
+	if (reset || !(dbl || lo15) || !vs_act) begin
 		vs_n   <= 3'd0;
 		vs_cut <= 1'b0;
 	end else if (hs_act && !hs_act_q) begin
-		if (vs_n == 3'd6) vs_cut <= 1'b1;
-		else              vs_n <= vs_n + 1'd1;
+		if (vs_n == vs_lim) vs_cut <= 1'b1;
+		else                vs_n <= vs_n + 1'd1;
 	end
 end
 
@@ -147,6 +152,6 @@ end
 // 200-line EGA/CGA modes: a TV fed that lost the picture). The rest passes
 // as it comes: the 350-line and VGA modes are told apart by their polarity.
 assign hs_pin = dbl ? (!hs_idle ? !hs_out : hs_out) : lo15 ? hs_act : hs_out;
-assign vs_pin = dbl ? !(vs_act && !vs_cut) : lo15 ? vs_act : vs_out;
+assign vs_pin = dbl ? !(vs_act && !vs_cut) : lo15 ? (vs_act && !vs_cut) : vs_out;
 
 endmodule

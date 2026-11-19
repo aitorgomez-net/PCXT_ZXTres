@@ -1,4 +1,4 @@
-// The return to the Spectrum core (OSD "Back to ZX core"): DeMiSTify's
+// The return to the Spectrum core (OSD "Reload ZX core"): DeMiSTify's
 // zx3w/return_to_core1.v as the board top uses it, at clk50, against the
 // ICAPE2 model of xilinx_clock_models.sv. Nothing reaches ICAP before the
 // request; after one clock of request the warm boot (IPROG) is sent with

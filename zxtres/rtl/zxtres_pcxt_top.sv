@@ -119,7 +119,7 @@ module zxtres_pcxt_top (
         .DAC_L(dac_l), .DAC_R(dac_r)
     );
 
-    // OSD "Back to ZX core": status bit 69 crosses to clk50 and starts the
+    // OSD "Reload ZX core": status bit 69 crosses to clk50 and starts the
     // ICAP warm boot (IPROG) from flash address 0, where the Spectrum core
     // is. The module is the one of DeMiSTify's ZXTRES wrapper
     // (templates/zxtres/zx3w/return_to_core1.v); it latches the request and

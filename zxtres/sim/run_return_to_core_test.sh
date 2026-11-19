@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Simulate the ICAP warm boot of the OSD "Back to ZX core" entry
+# Simulate the ICAP warm boot of the OSD "Reload ZX core" entry
 # (zxtres/sim/zxtres_return_to_core_tb.sv). Run from WSL or Linux with
 # verilator.
 #

@@ -32,7 +32,7 @@ def transform(main_path, menu_path, header_path):
 
     source = main_path.read_text()
     source = replace_once(source, '#define LINELENGTH 32',
-                          '#define LINELENGTH (OSDLINELEN/8)', 'menu label width')
+                          '#define LINELENGTH (OSDLINELEN/8)\nunsigned int menu_mask(void);', 'menu label width')
     # 32 columns plus the colour codes a label can carry (see overrides.c)
     source = replace_once(source, 'static char romfilenames[7][30];',
                           'static char romfilenames[OSDNLINE-1][40];',
@@ -83,6 +83,28 @@ def transform(main_path, menu_path, header_path):
         "\t\t\t\t\tcase 'O':\n"
         "\t\t\t\t\tcase 'T':",
         'separator entries')
+
+    # Hide flags: an entry may start with flag bytes, 0xC0+n (shown only while bit n of
+    # menu_mask() is set) or 0xE0+n (only while it is clear), n up to 31. They work as
+    # MiSTer's h<n> and H<n> but take one byte each: the configuration string the core
+    # answers with cannot pass 2047 bytes (see conf_str() in make_guest.py). A hidden
+    # entry takes no row; the rows after it move up. menu_mask() is in the core's
+    # overrides.c.
+    source = replace_once(
+        source,
+        '\t\t\tunsigned int parent;\n\t\t\tunsigned int page=0;\n\t\t\tc=configstring_next();\n',
+        '\t\t\tunsigned int parent;\n\t\t\tunsigned int page=0;\n\t\t\tint hide=0;\n\t\t\tc=configstring_next();\n\t\t\twhile((c&0xff)>=0xc0)\n\t\t\t{\n\t\t\t\tint flag=(menu_mask()>>(c&0x1f))&1;\n\t\t\t\tif(c&0x20)\n\t\t\t\t\tflag=!flag;\n\t\t\t\tif(!flag)\n\t\t\t\t\thide=1;\n\t\t\t\tc=configstring_next();\n\t\t\t}\n',
+        'hide flags')
+    source = replace_once(
+        source,
+        '\t\t\t\tif(nextline)\n\t\t\t\t{\n\t\t\t\t\tif(line>=skip)',
+        '\t\t\t\tif(nextline && !hide)\n\t\t\t\t{\n\t\t\t\t\tif(line>=skip)',
+        'hidden entry row')
+    source = replace_once(
+        source,
+        '\t\t\t\t\tif(selpage==parent)\n\t\t\t\t\t{\n\t\t\t\t\t\tif(line>=skip)',
+        '\t\t\t\t\tif(selpage==parent && !hide)\n\t\t\t\t\t{\n\t\t\t\t\t\tif(line>=skip)',
+        'hidden page row')
 
     menu_entries = 'struct menu_entry menu[]=\n{\n' + ',\n'.join(
         f'\t{{MENU_ACTION(&submenu),romfilenames[{i}],0,0,0}}'
