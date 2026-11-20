@@ -208,8 +208,8 @@ CONF_ENTRIES = [
     HIDE_PCJR + 'P5SJ,ROMBIN,PCjr BIOS:;',
     HIDE_EGA_CARD + 'P5SE,ROMBIN,EGA BIOS:;',
     HIDE_NOT_PCJR + 'P5SC,ROMBIN,EC00 BIOS:;',
-    HIDE_PCJR + 'P5SK,JRCBIN,PCjr cart. 1:;',
-    HIDE_PCJR + 'P5SL,JRCBIN,PCjr cart. 2:;',
+    HIDE_PCJR + 'P5SK,JRC,PCjr cart. 1:;',
+    HIDE_PCJR + 'P5SL,JRC,PCjr cart. 2:;',
     'P1P6,Output;',
     # Video > Output
     'P6L,Position;',

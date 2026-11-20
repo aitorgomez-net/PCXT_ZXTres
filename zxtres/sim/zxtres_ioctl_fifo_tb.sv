@@ -139,6 +139,16 @@ module zxtres_ioctl_fifo_tb;
         download(8'd5, 4, 40, (27'h40000 >> 1) - 2);
         drain();
 
+        // A download without data, how the firmware dismounts a cartridge, alone
+        // and followed by a file.
+        download(8'd5, 0, 40);
+        drain();
+        if (downloads_seen != 7) $fatal(1, "%0d downloads seen, expected 7 (empty download lost)", downloads_seen);
+        download(8'd6, 0, 40);
+        download(8'd5, 20, 40);
+        drain();
+        if (downloads_seen != 9) $fatal(1, "%0d downloads seen, expected 9", downloads_seen);
+
         $display("IOCTL_FIFO_TEST_PASS (%0d words)", received);
         $finish;
     end

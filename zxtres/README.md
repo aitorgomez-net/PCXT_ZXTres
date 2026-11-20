@@ -65,8 +65,10 @@ in the root when there is no such folder.
 A missing ROM leaves its slot empty: the machine asks only for the BIOS of
 the machine and the card chosen in the OSD, and holds the splash until it is
 there. Any other file of the card can be chosen for each slot in the OSD page
-*BIOS*, which also takes the two PCjr cartridges (`.JRC` files). A cartridge
-stays in for the session only, and the machine restarts to see it.
+*BIOS*, which also takes the two PCjr cartridges (`.JRC` files only). A cartridge
+stays in for the session only, and the machine restarts to see it. To dismount a floppy, a hard disk or a
+cartridge, open its file selector: its first row, *Unmount NAME*, dismounts it (a hard disk at the next
+*Reset & apply*). *Back* leaves the unit as it was.
 
 `PCXT.CFG` keeps the OSD settings, the path of each of the four images and of
 the five BIOS files, so the next start mounts them again. Without it, nothing

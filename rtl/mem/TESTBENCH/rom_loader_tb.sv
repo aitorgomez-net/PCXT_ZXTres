@@ -101,6 +101,16 @@ module rom_loader_tb #(
         if (hold_request) err("HOLD still requested after the download");
     endtask
 
+    // A download that carries no data: how the firmware dismounts a cartridge
+    task automatic download_empty(input logic [7:0] index, input int clocks);
+        ioctl_index    <= index;
+        ioctl_download <= 1;
+        repeat (clocks) @(posedge clock);
+        ioctl_download <= 0;
+        repeat (8) @(posedge clock);
+        if (hold_request) err("HOLD still requested after the empty download");
+    endtask
+
     // A JRC cartridge: 256 words of header (the word at byte 1CEh carries the
     // address in its high byte), then the ROM
     task automatic download_cart(input logic [7:0] index, input int rom_words, input int seed,
@@ -203,6 +213,14 @@ module rom_loader_tb #(
             download_cart(8'd5, 100, 5, 8'hC8);
             if (cart1_seg !== 8'hC8 || cart1_len !== 17'd200) err($sformatf("cartridge 1 reloaded: seg %02h len %0d", cart1_seg, cart1_len));
             if (ec00_loaded) err("EC00 flagged as loaded by a cartridge");
+            // An empty download dismounts the cartridge of its slot only
+            download_empty(8'd5, 12);
+            if (cart1_len !== 17'd0) err($sformatf("cartridge 1 not dismounted: len %0d", cart1_len));
+            if (cart2_len !== 17'd65536 || cart2_seg !== 8'hE0) err("cartridge 2 changed by the dismount of cartridge 1");
+            download_empty(8'd6, 80);
+            if (cart2_len !== 17'd0) err($sformatf("cartridge 2 not dismounted: len %0d", cart2_len));
+            download_cart(8'd5, 40, 7, 8'hC4);                // and the slot takes a cartridge again
+            if (cart1_seg !== 8'hC4 || cart1_len !== 17'd80) err($sformatf("cartridge 1 after a dismount: seg %02h len %0d", cart1_seg, cart1_len));
         end
         else begin
             download(8'd5, 50, 9);

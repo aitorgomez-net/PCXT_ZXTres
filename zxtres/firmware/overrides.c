@@ -208,6 +208,18 @@ static void setimagename(int unit, const char *name, int mounted)
 		put83(imgnames[u], name);
 }
 
+/* Called by the menu for the file selector: the name of the image in a unit
+   that can be dismounted (a disk or a cartridge), 0 for any other unit or an empty one. The
+   selector shows it as the row "Unmount NAME". */
+const char *unmountable(int unit)
+{
+	int u = slot_of(unit);
+
+	if(u < 0 || !((unit >= '0' && unit <= '1') || (unit >= '3' && unit <= '4') || unit == CART1_UNIT || unit == CART2_UNIT))
+		return(0);
+	return(imgnames[u][0] ? imgnames[u] : 0);
+}
+
 /* Called by the menu for the S entries: the text to show after the label. */
 const char *imagename(int unit)
 {
@@ -216,6 +228,34 @@ const char *imagename(int unit)
 	if(u < 0)
 		return(0);
 	return(imgnames[u][0] ? imgnames[u] : "(none)");
+}
+
+/* A cartridge is dismounted by an empty download of its slot: the ROM loader
+   empties the slot when a download of its index starts, and the core resets
+   the machine when it ends, so the BIOS no longer sees it. */
+static void unload_cart(int unit)
+{
+	register volatile int *spiptr = &HW_SPI(HW_SPI_DATA);
+	int u = slot_of(unit);
+
+	if(u < 0 || !imgnames[u][0])
+		return;                 /* nothing to dismount */
+	if(!booting)
+	{
+		statusword |= RESET_BIT;
+		sendstatus();
+	}
+	EnableFpga(); *spiptr = SPI_FPGA_FILE_INDEX; *spiptr = rom_index[rom_of(unit)]; DisableFpga();
+	EnableFpga(); *spiptr = SPI_FPGA_FILE_TX; *spiptr = 1; DisableFpga();
+	EnableFpga(); *spiptr = SPI_FPGA_FILE_TX; *spiptr = 0; DisableFpga();
+	if(!booting)
+	{
+		apply_pending_disks();
+		statusword &= ~RESET_BIT;
+		sendstatus();
+	}
+	setimagename(unit, 0, 0);
+	mountname[u][0] = 0;
 }
 
 /* '0' and '1' are the hard disks, '3' and '4' the floppy drives. The unit
@@ -290,7 +330,11 @@ int loadimage(char *filename, int unit)
 			int u = slot_of(unit);
 
 			if(!filename)
+			{
+				if(unit == CART1_UNIT || unit == CART2_UNIT)
+					unload_cart(unit);
 				return(0);
+			}
 			if(!booting)
 			{
 				statusword |= RESET_BIT;
@@ -766,6 +810,7 @@ void submenu(int row);
 void fileselector(int row);
 void selectrom(int row);
 void selectdir(int row);
+void selectunmount(int row);
 void confirm_yes(int row);
 void confirm_no(int row);
 
@@ -964,6 +1009,13 @@ void Menu_DrawRow(int row, int selected, struct menu_entry *m)
 		pc(' ');
 		ps(l);
 	}
+	else if(a == MENU_ACTION(&selectunmount))
+	{
+		pc(C_RED);
+		pc(ICON_CROSS);
+		pc(' ');
+		ps(l);
+	}
 	else if(a == MENU_ACTION(&confirm_no))
 	{
 		pc(C_RED);
@@ -1099,6 +1151,8 @@ void Menu_DrawExtras(int selected, struct menu_entry *m)
 		help = "\006Enter: choose a file";
 	else if(a == MENU_ACTION(&selectdir))
 		help = "\006Enter: open the folder";
+	else if(a == MENU_ACTION(&selectunmount))
+		help = "\006Enter: unmount";
 	else if(a == MENU_ACTION(&selectrom))
 		help = "\006Enter: load";
 	centre_row(OSDNLINE + 1, help);
