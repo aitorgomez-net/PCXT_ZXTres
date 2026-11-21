@@ -126,7 +126,6 @@ module vram_fetch #(
     logic            s1_hit  [DEPTH][4];
     logic [1:0]      s1_wsel [DEPTH][4];
     logic [2:0]      s1_nw;
-    logic [23:0]     s1_off;
 
     function automatic logic [IW-1:0] inc(input logic [IW-1:0] p);
         inc = (p == IW'(DEPTH - 1)) ? '0 : p + 1'b1;
@@ -200,15 +199,31 @@ module vram_fetch #(
     // ------------------------------------------------------------------
     // Snoop, stage 1: which entries does the write cover, and where
     // ------------------------------------------------------------------
+    // Word j of the write is word (snoop_addr + j - e_addr[i]) of entry i, and it
+    // hits when that offset is below the entry length (at most 4). One 24-bit
+    // difference per entry is enough: with d = snoop_addr - e_addr[i] and j < 4,
+    // d + j only carries into bit 2 when d[1:0] + j >= 4, so the offset is below
+    // 4 exactly when d[23:2] is all zeros and there is no carry, or all ones and
+    // there is one. (The same result as a 24-bit add and compare per entry and
+    // word, at a fraction of the logic.)
+    logic [23:0] s1_d  [DEPTH];
+    logic        s1_hz [DEPTH];
+    logic        s1_ho [DEPTH];
+    logic [2:0]  s1_lo;
     always_comb begin
         s1_nw  = len_words(snoop_len);
-        s1_off = 24'd0;
+        s1_lo  = 3'd0;
         for (int i = 0; i < DEPTH; i++) begin
+            s1_d[i]  = snoop_addr - e_addr[i];
+            s1_hz[i] = (s1_d[i][23:2] == 22'd0);
+            s1_ho[i] = (s1_d[i][23:2] == {22{1'b1}});
             for (int j = 0; j < 4; j++) begin
-                s1_off = snoop_addr + 24'(j) - e_addr[i];
-                s1_wsel[i][j] = s1_off[1:0];
+                s1_lo = {1'b0, s1_d[i][1:0]} + 3'(j);
+                s1_wsel[i][j] = s1_lo[1:0];
                 s1_hit[i][j]  = snoop_valid && e_v[i] && !e_skip[i] && (3'(j) < s1_nw)
-                              && (s1_off < 24'(len_words(e_len[i]))) && ({1'b0, s1_off[1:0]} < 3'(MAX_WORDS));
+                              && (s1_lo[2] ? s1_ho[i] : s1_hz[i])
+                              && ({1'b0, s1_lo[1:0]} < len_words(e_len[i]))
+                              && ({1'b0, s1_lo[1:0]} < 3'(MAX_WORDS));
             end
         end
     end
@@ -220,7 +235,6 @@ module vram_fetch #(
     logic            do_alloc;
     logic            do_ack;
     logic [IW-1:0]   bi;
-    logic [1:0]      wsel;
     logic [1:0]      sbe;
     logic [15:0]     sd;
 
@@ -252,7 +266,6 @@ module vram_fetch #(
         n_beat     = beat;
         n_underrun = underrun_count;
         bi         = '0;
-        wsel       = 2'd0;
         sbe        = 2'd0;
         sd         = 16'd0;
 
@@ -287,17 +300,23 @@ module vram_fetch #(
         end
 
         // --- snoop, stage 2: patch the overlay of every word found one clock ago ---
+        // The words of one write are consecutive, so at most one of them lands on
+        // a given word of an entry: each word of each entry takes the write word
+        // that hits it (an AND-OR), not a chain of four merges.
         if (h_valid) begin
             for (int i = 0; i < DEPTH; i++) begin
                 if (e_v[i] && !e_skip[i]) begin
-                    for (int j = 0; j < 4; j++) begin
-                        if (h_hit[i][j]) begin
-                            wsel = h_wsel[i][j];
-                            sbe  = h_wbe[2*j +: 2];
-                            sd   = h_wdata[16*j +: 16];
-                            n_ov[i][16*wsel +: 16]   = byte_merge(n_ov[i][16*wsel +: 16], sd, sbe);
-                            n_ovm[i][2*wsel +: 2]    = n_ovm[i][2*wsel +: 2] | sbe;
+                    for (int w = 0; w < MAX_WORDS; w++) begin
+                        sbe = 2'd0;
+                        sd  = 16'd0;
+                        for (int j = 0; j < 4; j++) begin
+                            if (h_hit[i][j] && (h_wsel[i][j] == 2'(w))) begin
+                                sbe = sbe | h_wbe[2*j +: 2];
+                                sd  = sd  | h_wdata[16*j +: 16];
+                            end
                         end
+                        n_ov[i][16*w +: 16] = byte_merge(n_ov[i][16*w +: 16], sd, sbe);
+                        n_ovm[i][2*w +: 2]  = n_ovm[i][2*w +: 2] | sbe;
                     end
                 end
             end
