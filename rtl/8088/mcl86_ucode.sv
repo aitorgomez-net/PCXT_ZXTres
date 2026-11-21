@@ -73,7 +73,10 @@ module mcl86_ucode
     //--------------------------------------------------------------------------
     // ROM Storage
     //--------------------------------------------------------------------------
-    logic [31:0] mem[0:4095];
+    // Vivado maps a ROM it can compress to LUTs unless told otherwise; the
+    // registered read below is a block RAM read as it is, with the same
+    // one-clock latency, and frees some 700 LUTs on the Artix-7.
+    (* rom_style = "block" *) logic [31:0] mem[0:4095];
 
     //--------------------------------------------------------------------------
     // ROM Initialization (Vivado / Others)
