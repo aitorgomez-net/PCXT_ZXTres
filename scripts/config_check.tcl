@@ -26,7 +26,9 @@ proc pcxt_macro_defaults {} {
         ENABLE_EMS           0 \
         ENABLE_UMB           0 \
         ENABLE_A000_UMB      0 \
-        ENABLE_MIDI          1]
+        ENABLE_MIDI          1 \
+        ENABLE_RTC           1 \
+        ENABLE_COM2          1]
 }
 
 # Macros that are on/off switches (the rest carry a number or a name)
@@ -36,7 +38,7 @@ proc pcxt_switch_macros {} {
         SYSTEM_VARIANT_PCJR ROM_VARIANT_PCJR ROM_IS_PCJR ENABLE_PCJR
         ENABLE_TANDY_AUDIO ENABLE_TANDY_KBD ENABLE_CGA ENABLE_HGC ENABLE_EGA
         ENABLE_OPL2 ENABLE_CMS ENABLE_SB ENABLE_EMS ENABLE_UMB
-        ENABLE_A000_UMB ENABLE_MIDI LAYOUT_EGA
+        ENABLE_A000_UMB ENABLE_MIDI ENABLE_RTC ENABLE_COM2 LAYOUT_EGA
     }
 }
 

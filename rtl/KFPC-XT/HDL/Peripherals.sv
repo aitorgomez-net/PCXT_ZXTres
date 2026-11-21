@@ -42,6 +42,16 @@
 `ifndef ENABLE_EGA
 `define ENABLE_EGA 0
 `endif
+// The RTC/CMOS device (2C0h, 340h with the EGA) and the second serial port
+// (COM2 at 2F8h, 3F8h on a PCjr). A build that sets one to 0 leaves it out:
+// its ports read as nothing and it raises no interrupt. Small FPGAs drop them
+// (the Tandy 1000 had neither on most models).
+`ifndef ENABLE_RTC
+`define ENABLE_RTC 1
+`endif
+`ifndef ENABLE_COM2
+`define ENABLE_COM2 1
+`endif
 
 module PERIPHERALS #(
         parameter ps2_over_time = 16'd1000,
@@ -477,7 +487,7 @@ module PERIPHERALS #(
     wire    cga_mem_select          = `ENABLE_CGA ? (~iorq && ~address_enable_n && enable_cga & ~ega_active & (address[19:15] == 5'b10111)) : 1'b0; // B8000 - BFFFF (16 KB / 32 KB)
     wire    hgc_mem_select          = `ENABLE_HGC ? (~iorq && ~address_enable_n && hgc_enable & (address[19:15] == {5'b1011, hgc_grph_page})) : 1'b0; // B0000 - BFFFF (32KB / 64 KB)
     wire    uart_chip_select        = (~address_enable_n && {address[15:3], 3'd0} == (pcjr_en ? 16'h02F8 : 16'h03F8));
-    wire    uart2_chip_select       = (~address_enable_n && {address[15:3], 3'd0} == (pcjr_en ? 16'h03F8 : 16'h02F8));
+    wire    uart2_chip_select       = `ENABLE_COM2 ? (~address_enable_n && {address[15:3], 3'd0} == (pcjr_en ? 16'h03F8 : 16'h02F8)) : 1'b0;
     // NOTE: deliberately no `iorq` term here, matching uart_chip_select above.
     // This select is qualified by iorq_uart, which pulses on the *trailing* edge
     // of io_write_n - by then iorq has already dropped, so including it would
@@ -499,7 +509,7 @@ module PERIPHERALS #(
     // to 0x340 .. 0x341, one of the standard base addresses of a real MM58167
     // RTC card. Every other card keeps it at 0x2C0.
     wire [15:0] rtc_port            = ega_active ? 16'h0340 : 16'h02C0;
-    wire    rtc_chip_select         = (iorq && ~address_enable_n && address[15:1] == rtc_port[15:1]); // 0x2C0 or 0x340, two ports
+    wire    rtc_chip_select         = `ENABLE_RTC ? (iorq && ~address_enable_n && address[15:1] == rtc_port[15:1]) : 1'b0; // 0x2C0 or 0x340, two ports
 
     assign  ega_mem_select          = ega_mem_select_raw;
 
@@ -1125,7 +1135,7 @@ end
             // card that is supposed to look unplugged.
             mpu_interrupt_ff        <= mpu_irq & mpu401_enabled;
             mpu_interrupt           <= mpu_interrupt_ff;
-            uart2_interrupt_ff      <= uart2_irq;
+            uart2_interrupt_ff      <= `ENABLE_COM2 ? uart2_irq : 1'b0;
             uart2_interrupt         <= uart2_interrupt_ff;
         end
     end
