@@ -581,13 +581,16 @@ module PERIPHERALS #(
 
     always_ff @(posedge clock, posedge reset)
     begin
-        if (reset || !`ENABLE_EMS)
+        // The asynchronous reset is the reset alone: Vivado cannot infer one from
+        // "reset || !`ENABLE_EMS" when ENABLE_EMS is 0 (Synth 8-91). A build without
+        // EMS clears the map synchronously below instead.
+        if (reset)
         begin
             map_ems = '{7'h00, 7'h00, 7'h00, 7'h00};
             ena_ems = '{1'b0, 1'b0, 1'b0, 1'b0};
         end
         // ems_enabled is a level, not an edge of this block: it clears the map synchronously
-        else if (!ems_enabled)
+        else if (!ems_enabled || !`ENABLE_EMS)
         begin
             map_ems = '{7'h00, 7'h00, 7'h00, 7'h00};
             ena_ems = '{1'b0, 1'b0, 1'b0, 1'b0};
