@@ -3,12 +3,17 @@
 # .ZX3 core. One design serves the ZXTRES+ and ZXTRES++ boards, which differ
 # only in the FPGA, so there is one build per FPGA:
 #
-#   zxtres/scripts/build_pcxt.sh [A100T|A200T] [project]
+#   zxtres/scripts/build_pcxt.sh [A35T|A100T|A200T] [project]
 #
 #   A100T  ZXTRES+  (xc7a100tfgg484-2), the default
 #            output build/zxtres-pcxt/vivado-pcxt/PCXT.ZX3
 #   A200T  ZXTRES++ (xc7a200tfbg484-2)
 #            output build/zxtres-pcxt/vivado-pcxt-a200t/PCXT.ZX3
+#   A35T   ZXTRES   (xc7a35tfgg484-2), which only holds one machine at a time:
+#            PCXT_PROFILE is one of the zx3_a35t_* profiles (by default
+#            zx3_a35t_pcxt_cgahgc); output
+#            build/zxtres-pcxt/vivado-pcxt-a35t-<profile>/PCXT.ZX3
+#          The A35T builds leave zxtres/vivado alone (it is the full core's).
 #
 # The machine is built with the options of a MiSTer profile, profiles/<name>.tcl
 # (PCXT_PROFILE, by default mister_pcxt_full: PCXT, Tandy 1000 and PCjr, CGA,
@@ -28,15 +33,19 @@ set -euo pipefail
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 board=${1:-A100T}
 mode=${2:-build}
-[[ "$mode" == build || "$mode" == project ]] || { echo "usage: build_pcxt.sh [A100T|A200T] [project]" >&2; exit 1; }
+[[ "$mode" == build || "$mode" == project ]] || { echo "usage: build_pcxt.sh [A35T|A100T|A200T] [project]" >&2; exit 1; }
 case "${board^^}" in
+  A35T)  profile=${PCXT_PROFILE:-zx3_a35t_pcxt_cgahgc}
+         [[ "$profile" == zx3_a35t_* ]] || { echo "A35T: PCXT_PROFILE must be a zx3_a35t_* profile" >&2; exit 1; }
+         [[ "$mode" == build ]] || { echo "A35T: no project mode (zxtres/vivado is the full core's)" >&2; exit 1; }
+         part=xc7a35tfgg484-2; dir=vivado-pcxt-a35t-$profile ;;
   A100T) part=xc7a100tfgg484-2; dir=vivado-pcxt ;;
   A200T) part=xc7a200tfbg484-2; dir=vivado-pcxt-a200t ;;
-  *) echo "usage: build_pcxt.sh [A100T|A200T]" >&2; exit 1 ;;
+  *) echo "usage: build_pcxt.sh [A35T|A100T|A200T]" >&2; exit 1 ;;
 esac
 [[ "$mode" == project ]] && dir="$dir-project"
 top=zxtres_pcxt_top
-profile=${PCXT_PROFILE:-mister_pcxt_full}
+profile=${profile:-${PCXT_PROFILE:-mister_pcxt_full}}
 out="$root/build/zxtres-pcxt/$dir"
 
 if [[ -z "${VIVADO:-}" ]]; then
@@ -171,11 +180,14 @@ git -C "$root" status --short > "$out/source-status.txt"
 
 # Every run rewrites the Tcl scripts that create the Vivado project (and the
 # generated files they need) in zxtres/vivado, so they always match these
-# sources; when a build changes them, they are left to be committed.
-python3 "$root/zxtres/scripts/make_vivado_tcl.py" "$out" xc7a100tfgg484-2 xc7a200tfbg484-2 "${defines[@]}"
-if ! git -C "$root" diff --quiet -- zxtres/vivado 2>/dev/null \
-   || [[ -n "$(git -C "$root" ls-files -o --exclude-standard zxtres/vivado 2>/dev/null)" ]]; then
-  echo "NOTE: zxtres/vivado changed: commit it with the rest of this change" >&2
+# sources; when a build changes them, they are left to be committed. They
+# describe the full core, so an A35T build (one machine) does not touch them.
+if [[ "$part" != xc7a35t* ]]; then
+  python3 "$root/zxtres/scripts/make_vivado_tcl.py" "$out" xc7a100tfgg484-2 xc7a200tfbg484-2 "${defines[@]}"
+  if ! git -C "$root" diff --quiet -- zxtres/vivado 2>/dev/null \
+     || [[ -n "$(git -C "$root" ls-files -o --exclude-standard zxtres/vivado 2>/dev/null)" ]]; then
+    echo "NOTE: zxtres/vivado changed: commit it with the rest of this change" >&2
+  fi
 fi
 
 cd "$out"
