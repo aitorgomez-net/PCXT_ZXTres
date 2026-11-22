@@ -101,6 +101,10 @@ release can go in the card's `MIST` folder instead of loading the `.ZX3`: the
 core menu shown at power-up with the card in lists it by its file name. The
 `PCXT` folder and its files are the same either way.
 
+The core menu with the ZX Spectrum theme (the title and status bars with the
+clock, and the file selector) is a separate project, with its firmware and its
+builds in [mist-firmware-rp2040](https://github.com/aitorgomez-net/mist-firmware-rp2040).
+
 Connect a VGA monitor, or a 15 kHz TV through a suitable adapter. Plug the
 PS/2 mouse in before the core starts, or before a reset from the OSD, because
 the converter handshakes with it at that point.
