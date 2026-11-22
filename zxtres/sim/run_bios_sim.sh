@@ -18,7 +18,9 @@
 # root, or in a folder as FOLDER/NAME.EXT=file. ZXTRES_SIM_OUT=dir replaces
 # the output directory. ZXTRES_SIM_KEEP_FIRMWARE=1 uses the firmware already
 # built; a Vivado build rebuilds it in the same directory, so the two must not
-# run together.
+# run together, unless ZXTRES_FIRMWARE_OUT=dir gives the simulation a firmware
+# directory of its own. PCXT_PROFILE=name builds the machine and the firmware
+# (its OSD) with profiles/<name>.tcl instead of mister_pcxt_full.
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -30,11 +32,13 @@ if [[ $# -gt 0 && "$1" != +* ]]; then ec00_rom=$1; shift; fi
 pcxt_rom=$(realpath "$pcxt_rom"); ec00_rom=$(realpath "$ec00_rom")
 out="${ZXTRES_SIM_OUT:-$root/build/zxtres-pcxt/bios-sim}"
 profile=${PCXT_PROFILE:-mister_pcxt_full}
+fw="${ZXTRES_FIRMWARE_OUT:-build/zxtres-pcxt/firmware}"
+export ZXTRES_FIRMWARE_OUT="$(realpath -m "$fw")"
 
 if [[ -z "${ZXTRES_SIM_KEEP_FIRMWARE:-}" ]]; then
-  mkdir -p build
-  bash zxtres/scripts/build_firmware.sh > build/zxtres-pcxt-firmware.log 2>&1 \
-    || { tail -20 build/zxtres-pcxt-firmware.log >&2; exit 1; }
+  mkdir -p build "$(dirname "$out")"
+  bash zxtres/scripts/build_firmware.sh "$profile" > "$out.firmware.log" 2>&1 \
+    || { tail -20 "$out.firmware.log" >&2; exit 1; }
 fi
 rm -rf "${out:?}"
 mkdir -p "$out/files" "$out/ghdl" "$out/patched"
@@ -85,8 +89,8 @@ controller=(
   DeMiSTify/controller/interrupt_controller.vhd
   DeMiSTify/controller/timer_controller.vhd
   DeMiSTify/controller/spi_controller.vhd
-  build/zxtres-pcxt/firmware/controller_rom1_word.vhd
-  build/zxtres-pcxt/firmware/controller_rom2_word.vhd
+  "$fw/controller_rom1_word.vhd"
+  "$fw/controller_rom2_word.vhd"
   DeMiSTify/firmware/controller_rom.vhd
   DeMiSTify/controller/substitute_mcu.vhd
   DeMiSTify/templates/demistify/common/joystick_sega.vhd

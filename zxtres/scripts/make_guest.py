@@ -123,6 +123,13 @@ HIDE_TANDY = hide(11)       # the Tandy 1000 only
 HIDE_PCXT_CGA = hide(13)    # the PCXT with the CGA/HGC card
 HIDE_PCJR = hide(14)        # the PCjr only
 HIDE_A000 = hide(1)         # not a PCjr, not an EGA card
+# and what the build has (firmware/overrides.c reads the build's profile, so the A35T
+# builds, which hold one machine and one card, show only their own entries):
+HIDE_MACHINE_SEL = hide(3)  # the machine can be chosen (the full core)
+HIDE_CARD_SEL = hide(4)     # the PCXT, in a build with both card families
+HIDE_UMB = hide(5)          # UMB C400-CFFF built, not a PCjr
+HIDE_A220 = hide(6)         # C/MS or the Sound Blaster built, not a PCjr
+HIDE_SB = hide(9)           # the Sound Blaster built, not a PCjr
 
 
 # MiST status bits of this OSD (see HEADER for the MiSTer bits they feed):
@@ -145,7 +152,7 @@ CONF_ENTRIES = [
     HIDE_NOT_PCJR + 'S0,VHDIMG,Hard disk 0:;',
     HIDE_NOT_PCJR + 'S1,VHDIMG,Hard disk 1:;',
     'L,Machine;',
-    opt('', 3, 4, 'Machine,IBM PCXT,Tandy 1000,IBM PCjr'),
+    opt('', 3, 4, 'Machine,IBM PCXT,Tandy 1000,IBM PCjr', HIDE_MACHINE_SEL),
     opt('', 17, 18, 'CPU Speed,4.77MHz,7.16MHz,9.54MHz,Max', HIDE_NOT_PCJR),
     opt('', 19, 20, 'Write protect,None,A:,B:,A: & B:', HIDE_NOT_PCJR),
     opt('', 19, 19, 'Write protect,No,Yes', HIDE_PCJR),   # one drive: A: only, as MiSTer
@@ -161,7 +168,7 @@ CONF_ENTRIES = [
     # Video
     'P1,Video;',
     HIDE_PCXT + 'P1L,Card;',
-    opt('P1', 6, 6, 'Video card,CGA/HGC,EGA', HIDE_PCXT),
+    opt('P1', 6, 6, 'Video card,CGA/HGC,EGA', HIDE_CARD_SEL),
     opt('P1', 44, 45, 'Monitor,5154/ECD,5153/CGA,5151/MDA', HIDE_EGA_CARD),
     opt('P1', 29, 29, '1st video,CGA,Hercules', HIDE_PCXT_CGA),
     opt('P1', 40, 40, 'CGA graphics,Yes,No', HIDE_PCXT_CGA),
@@ -175,10 +182,10 @@ CONF_ENTRIES = [
     # Audio
     'P2,Audio;',
     HIDE_NOT_PCJR + 'P2L,Sound cards;',
-    opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Off', HIDE_NOT_PCJR),
+    opt('P2', 56, 57, 'Audio 220h,C/MS,Sound Blaster,Off', HIDE_A220),
     opt('P2', 42, 43, 'OPL2,Adlib 388h,SB FM 388h/228h,Off', HIDE_NOT_PCJR),
     opt('P2', 59, 59, 'Tandy Sound,Off,On', HIDE_PCXT),
-    opt('P2', 61, 61, 'SB IRQ,5,7', HIDE_NOT_PCJR),
+    opt('P2', 61, 61, 'SB IRQ,5,7', HIDE_SB),
     HIDE_PCJR + 'P2L,PCjr;',
     opt('P2', 68, 68, 'Tape sound,Off,On', HIDE_PCJR),
     'P2L,Levels;',
@@ -193,7 +200,7 @@ CONF_ENTRIES = [
     opt('P4', 30, 31, 'BIOS Writable,None,EC00,Main,All', HIDE_NOT_PCJR),
     'P4L,Memory;',
     opt('P4', 5, 5, 'EMS D000-DFFF,Enabled,Disabled', HIDE_NOT_PCJR),
-    opt('P4', 55, 55, 'UMB C400-CFFF,Enabled,Disabled', HIDE_NOT_PCJR),
+    opt('P4', 55, 55, 'UMB C400-CFFF,Enabled,Disabled', HIDE_UMB),
     opt('P4', 54, 54, 'A000 UMB,Enabled,Disabled', HIDE_A000),
     opt('P4', 64, 67, 'PCjr RAM,128K,192K,256K,320K,384K,448K,512K,576K,640K', HIDE_PCJR),
     'P4L,Joysticks;',

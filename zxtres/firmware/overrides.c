@@ -50,6 +50,9 @@
 #include "timer.h"
 #include "spi.h"
 #include "user_io.h"
+/* The hardware of the build: build_firmware.sh writes the VERILOG_MACRO lines
+   of the build's profile (profiles/<name>.tcl) as PROFILE_<macro>. */
+#include "build_features.h"
 
 int LoadROM(const char *fn);
 
@@ -1041,11 +1044,71 @@ void Menu_DrawRow(int row, int selected, struct menu_entry *m)
      0  always            1  not an EGA card, not a PCjr (A000 UMB)
      2  not a PCjr        7  CGA/HGC card in use (a Tandy or PCjr has it)
      8  EGA card in use   10  PCXT       11  Tandy 1000
-    13  PCXT with the CGA/HGC card       14  PCjr */
+    13  PCXT with the CGA/HGC card       14  PCjr
+   and, for what the build holds:
+     3  the machine can be chosen        4  PCXT, and the card can be chosen
+     5  UMB C400-CFFF, not a PCjr        6  C/MS or Sound Blaster, not a PCjr
+     9  Sound Blaster, not a PCjr */
+/* What the build holds. The full core (mister_pcxt_full) chooses the machine
+   and the PC/XT card in the OSD; an A35T build has one machine and one card,
+   which the core uses whatever the status bits hold, so the OSD does the same
+   and leaves those bits as they are (PCXT.CFG keeps one layout for every build). */
+#ifndef PROFILE_ENABLE_MODEL_TANDY
+#define PROFILE_ENABLE_MODEL_TANDY 0
+#endif
+#ifndef PROFILE_SYSTEM_VARIANT_TANDY
+#define PROFILE_SYSTEM_VARIANT_TANDY 0
+#endif
+#ifndef PROFILE_SYSTEM_VARIANT_PCJR
+#define PROFILE_SYSTEM_VARIANT_PCJR 0
+#endif
+#ifndef PROFILE_ENABLE_CGA
+#define PROFILE_ENABLE_CGA 1
+#endif
+#ifndef PROFILE_ENABLE_HGC
+#define PROFILE_ENABLE_HGC 0
+#endif
+#ifndef PROFILE_ENABLE_EGA
+#define PROFILE_ENABLE_EGA 0
+#endif
+#ifndef PROFILE_ENABLE_CMS
+#define PROFILE_ENABLE_CMS 0
+#endif
+#ifndef PROFILE_ENABLE_SB
+#define PROFILE_ENABLE_SB 0
+#endif
+#ifndef PROFILE_ENABLE_UMB
+#define PROFILE_ENABLE_UMB 0
+#endif
+#define BUILD_MACHINE_SEL (PROFILE_ENABLE_MODEL_TANDY != 0)
+#define BUILD_MACHINE (PROFILE_SYSTEM_VARIANT_PCJR ? 2 : PROFILE_SYSTEM_VARIANT_TANDY ? 1 : 0)
+#define BUILD_HAS_EGA (PROFILE_ENABLE_EGA != 0)
+#define BUILD_HAS_CGA_HGC (PROFILE_ENABLE_CGA != 0 || PROFILE_ENABLE_HGC != 0)
+#define BUILD_CARD_SEL (BUILD_HAS_EGA && BUILD_HAS_CGA_HGC)
+
+/* The machine, as the status bits give it (3 is no machine of the menu) or as
+   the build fixes it. */
+static unsigned int osd_machine(void)
+{
+	if(BUILD_MACHINE_SEL)
+		return(statusword_get(OPT_MACHINE, 3));
+	return(BUILD_MACHINE);
+}
+
+/* The EGA card is in use */
+static unsigned int osd_ega(unsigned int machine)
+{
+	if(machine != 0 || !BUILD_HAS_EGA)
+		return(0);
+	if(!BUILD_CARD_SEL)
+		return(1);
+	return(statusword_get(OPT_CARD, 1));
+}
+
 unsigned int menu_mask(void)
 {
-	unsigned int machine = statusword_get(OPT_MACHINE, 3);
-	unsigned int ega = machine == 0 && statusword_get(OPT_CARD, 1);
+	unsigned int machine = osd_machine();
+	unsigned int ega = osd_ega(machine);
 	unsigned int pcjr = machine == 2;
 	unsigned int m = 1;
 
@@ -1057,6 +1120,11 @@ unsigned int menu_mask(void)
 	m |= (machine == 1) << 11;
 	m |= (machine == 0 && !ega) << 13;
 	m |= pcjr << 14;
+	m |= BUILD_MACHINE_SEL << 3;
+	m |= (machine == 0 && BUILD_CARD_SEL) << 4;
+	m |= (!pcjr && PROFILE_ENABLE_UMB) << 5;
+	m |= (!pcjr && (PROFILE_ENABLE_CMS || PROFILE_ENABLE_SB)) << 6;
+	m |= (!pcjr && PROFILE_ENABLE_SB) << 9;
 	return(m);
 }
 
@@ -1086,7 +1154,7 @@ static const char *const machine_names[3] = {"PCXT", "Tandy 1000", "PCjr"};
 
 static int machine_index(void)
 {
-	int v = statusword_get(OPT_MACHINE, 3);
+	int v = osd_machine();
 
 	return(v > 2 ? 0 : v);
 }
@@ -1105,7 +1173,7 @@ static const char *card_name(void)
 {
 	if(machine_index())
 		return("CGA");
-	return(statusword_get(OPT_CARD, 1) ? "EGA" : "CGA/HGC");
+	return(osd_ega(0) ? "EGA" : "CGA/HGC");
 }
 
 static void centre_row(int row, const char *text)
@@ -1318,8 +1386,8 @@ int info_page(struct menu_entry *m)
 	const char *image;
 
 	inforule(m, i++, "Core");
-	inforow(m, i++, "System", C_WHITE, "PCXT, Tandy, PCjr");
-	inforow(m, i++, "Board", C_WHITE, "ZXTRES+/++");
+	inforow(m, i++, "System", C_WHITE, BUILD_MACHINE_SEL ? "PCXT, Tandy, PCjr" : machine_names[BUILD_MACHINE]);
+	inforow(m, i++, "Board", C_WHITE, BUILD_MACHINE_SEL ? "ZXTRES+/++" : "ZXTRES");
 	inforow(m, i++, "Built", C_WHITE, __DATE__);
 	inforule(m, i++, "Machine");
 	inforow(m, i++, "Machine", C_CYAN, machine_names[machine_index()]);

@@ -70,7 +70,7 @@ cd "$root"
 [[ -f DeMiSTify/controller/substitute_mcu.vhd && -f mist-modules/user_io.v ]] || {
   echo "submodules missing: git submodule update --init --recursive" >&2; exit 1; }
 python3 zxtres/scripts/make_guest.py --check
-linux bash zxtres/scripts/build_firmware.sh > build/zxtres-pcxt-firmware.log 2>&1 \
+linux bash zxtres/scripts/build_firmware.sh "$profile" > build/zxtres-pcxt-firmware.log 2>&1 \
   || { tail -20 build/zxtres-pcxt-firmware.log >&2; exit 1; }
 
 rm -rf "${out:?}"

@@ -4,6 +4,11 @@
 # slots, so no OPL2, C/MS, Sound Blaster or EMS (the core keeps them off on a
 # PCjr anyway). No COM2 (the board has no pins for it) and no MIDI.
 # Sourced by build_pcxt.sh (PCXT_PROFILE); see scripts/config_check.tcl.
+# Option layout of the OSD: the EGA one. The ZXTres OSD (make_guest.py) feeds
+# the machine its status word in that layout only; without it the composite,
+# border, frame stacking, joystick swap, EMS and A000 UMB entries would be read
+# from other bits (and the EMS frame would sit at C000h).
+set_global_assignment -name VERILOG_MACRO "LAYOUT_EGA=1"
 set_global_assignment -name VERILOG_MACRO "SYSTEM_VARIANT_PCJR=1"
 set_global_assignment -name VERILOG_MACRO "ROM_VARIANT_PCJR=1"
 set_global_assignment -name VERILOG_MACRO "ENABLE_PCJR=1"
