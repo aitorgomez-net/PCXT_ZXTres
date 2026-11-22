@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The PCXT builds for the ZXTRES (A35T), ZXTRES+ (A100T) and ZXTRES++ (A200T): what each one holds, FPGA resources and timing, the optimisations that make the A35T builds fit, and how to build them.">
+<title>PCXT ZXTres · Boards and builds</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="hero">
+  <div class="hero-top">
+    <a class="brand" href="index.html"><span class="brand-mark">8088</span><span>PCXT · ZXTres</span></a>
+    <nav class="site-nav" aria-label="Documentation">
+      <a href="index.html">Home</a>
+      <a href="guide.html">Getting started</a>
+      <a href="builds.html" aria-current="page">Boards &amp; builds</a>
+      <a href="osd.html">OSD</a>
+      <a href="report/CORE_REPORT.html">Technical report</a>
+      <a href="https://github.com/aitorgomez-net/PCXT_ZXTres">GitHub</a>
+    </nav>
+  </div>
+  <div class="hero-inner">
+    <p class="kicker">Hardware and builds</p>
+    <h1>Boards <span>&amp; builds</span></h1>
+    <p class="lead">One full core for the ZXTRES+ and ZXTRES++, and four single-machine builds for the smaller ZXTRES. What each build holds, what it costs in the FPGA, and how it is made.</p>
+    <div class="chips"><span class="chip">XC7A35T · 4 builds</span><span class="chip">XC7A100T · full core</span><span class="chip">XC7A200T · full core</span><span class="chip">Vivado 2025.2</span></div>
+  </div>
+</header>
+
+<main class="page">
+<nav class="toc" aria-label="Contents">
+  <p class="toc-title">Contents</p>
+  <a href="#boards"><span class="nav-index">01</span><span>Boards</span></a>
+  <a href="#matrix"><span class="nav-index">02</span><span>Feature matrix</span></a>
+  <a href="#mister"><span class="nav-index">03</span><span>Versus MiSTer</span></a>
+  <a href="#resources"><span class="nav-index">04</span><span>Resources</span></a>
+  <a href="#fit"><span class="nav-index">05</span><span>Making it fit</span></a>
+  <a href="#building"><span class="nav-index">06</span><span>Building</span></a>
+  <a href="#verification"><span class="nav-index">07</span><span>Verification</span></a>
+</nav>
+<article class="article">
+
+<section class="section" id="boards">
+  <header class="section-header"><div class="section-number">01</div><div><p class="eyebrow">Hardware</p><h2>The ZXTRES boards</h2></div></header>
+  <p class="intro">The ZXTRES, ZXTRES+ and ZXTRES++ by Antonio Villena are the same board with three sizes of Artix-7. The core uses the board's SDRAM for the PC's memory, ROMs and video memory, its SRAM for the 350-line scan converter, the VGA connector, the audio jack and I2S, the two PS/2 ports, the two DB9 joystick ports and the microSD card through the DeMiSTify controller.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Board</th><th>FPGA (part)</th><th>LUTs</th><th>Block RAM tiles</th><th>PCXT build</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td>ZXTRES</td><td>XC7A35T (<code>xc7a35tfgg484-2</code>)</td><td class="num">20,800</td><td class="num">50</td><td>4 builds, one machine each</td><td>Built, not tried on a board</td></tr>
+      <tr><td>ZXTRES+</td><td>XC7A100T (<code>xc7a100tfgg484-2</code>)</td><td class="num">63,400</td><td class="num">135</td><td>Full core</td><td>First board tests</td></tr>
+      <tr><td>ZXTRES++</td><td>XC7A200T (<code>xc7a200tfbg484-2</code>)</td><td class="num">133,800</td><td class="num">365</td><td>Full core</td><td>Built, not tried on a board</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="matrix">
+  <header class="section-header"><div class="section-number">02</div><div><p class="eyebrow">What each build holds</p><h2>Feature matrix</h2></div></header>
+  <p class="intro">The full core is the MiSTer core's <code>mister_pcxt_full</code> profile: the machine and the PC/XT video card are chosen in the OSD and applied at the next reset. The ZXTRES builds come from the <code>profiles/zx3_a35t_*</code> profiles; each fixes the machine and the card, and its OSD shows only the entries of what it holds (see <a href="osd.html#builds">OSD per build</a>).</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Feature</th><th>Full core<br>A100T · A200T</th><th>PCXT_CGAHGC<br>A35T</th><th>PCXT_EGA<br>A35T</th><th>TANDY1000<br>A35T</th><th>PCJR<br>A35T</th></tr></thead>
+    <tbody>
+      <tr><td>Machine</td><td>PC/XT, Tandy 1000 or PCjr (OSD)</td><td>IBM PC/XT</td><td>IBM PC/XT</td><td>Tandy 1000</td><td>IBM PCjr</td></tr>
+      <tr><td>CPU</td><td>8088/8086; 4.77, 7.16, 9.54 MHz or Max (PCjr: 8088 at 4.77)</td><td>8088/8086, 4 speeds</td><td>8088/8086, 4 speeds</td><td>8088/8086, 4 speeds</td><td>8088 at 4.77 MHz</td></tr>
+      <tr><td>Video</td><td>CGA + Hercules, or EGA (OSD); Tandy and PCjr modes</td><td>CGA + Hercules</td><td>EGA (5151/5153/5154)</td><td>CGA with the Tandy modes</td><td>CGA with the PCjr gate array</td></tr>
+      <tr><td>AdLib (OPL2)</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes (388h)</td><td class="no">No</td></tr>
+      <tr><td>Sound Blaster Pro</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>C/MS</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>SN76489 (Tandy sound)</td><td class="yes">Yes</td><td class="yes">Yes (optional)</td><td class="yes">Yes (optional)</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      <tr><td>EMS (2 MiB, frame D000h)</td><td class="yes">Yes (not on the PCjr)</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+      <tr><td>A000 UMB</td><td class="yes">Yes (CGA/HGC)</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td></tr>
+      <tr><td>UMB C400–CFFF</td><td class="yes">Yes (EGA)</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>RTC/CMOS clock device</td><td>Yes, not set from a clock</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td>Yes, not set from a clock</td></tr>
+      <tr><td>COM1 (serial mouse)</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      <tr><td>COM2</td><td>Port only, no pins</td><td class="no">No</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Floppy drives / hard disks</td><td>A, B / 2 (PCjr: A only)</td><td>A, B / 2</td><td>A, B / 2</td><td>A, B / 2</td><td>A only / none</td></tr>
+      <tr><td>Cartridges</td><td>2 (PCjr)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td>2</td></tr>
+      <tr><td>BIOS files</td><td>PCXT, TANDY, PCJR, EGA, EC00</td><td>PCXT, EC00</td><td>PCXT, EGA, EC00</td><td>TANDY, EC00</td><td>PCJR</td></tr>
+    </tbody>
+  </table></div>
+  <p>No build has MIDI, the MPU-401 or MT32-pi (the board has no user port). The RTC row is the clock chip DOS can read; the board has no battery-backed clock to set it from.</p>
+</section>
+
+<section class="section" id="mister">
+  <header class="section-header"><div class="section-number">03</div><div><p class="eyebrow">Port</p><h2>What differs from the MiSTer core</h2></div></header>
+  <p class="intro">The machine RTL is the MiSTer RTL: <code>zxtres/rtl/pcxt_zxtres_guest.sv</code> is generated from <code>PCXT.sv</code> by <code>zxtres/scripts/make_guest.py</code>, which copies the machine blocks as they are and adds the board glue. Only the logic around the machine is specific to the board.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>MiSTer</th><th>ZXTres</th></tr></thead>
+    <tbody>
+      <tr><td>HPS, Main and the MiSTer menu</td><td>DeMiSTify controller (EightThirtyTwo CPU) with the port's firmware and a character-grid OSD of its own.</td></tr>
+      <tr><td>Scaler, HDMI, aspect ratio, HQ2x, scanlines</td><td>VGA at 31 kHz through a line doubler, or 15 kHz; no HDMI or DisplayPort.</td></tr>
+      <tr><td>DDR3 framebuffer for the 350-line modes</td><td>Scan converter in the board's SRAM (<code>zxtres_scanconv</code>), with a 480p output as the default.</td></tr>
+      <tr><td>RBF and <code>games/PCXT</code></td><td><code>.ZX3</code> (or <code>.BIT</code>) and a <code>PCXT</code> folder with fixed file names.</td></tr>
+      <tr><td>MGL profiles for several machines</td><td>Not available; on the full core the machine is chosen in the OSD.</td></tr>
+      <tr><td>MIDI, MPU-401, MT32-pi, COM2 on the user port</td><td>No user port.</td></tr>
+      <tr><td>Second SD card as an IDE disk</td><td>The one microSD slot belongs to the controller.</td></tr>
+      <tr><td>RTC set from the HPS</td><td>No clock source on the board.</td></tr>
+      <tr><td>Analog joysticks</td><td>DB9 ports with directions and buttons; Digital first.</td></tr>
+      <tr><td>Configuration files created by the core</td><td>The controller cannot create a file: <code>PCXT.CFG</code> must exist.</td></tr>
+      <tr><td>MiSTer 64/128-bit status word</td><td>DeMiSTify's 64 bits widened to 128 by the port's firmware and <code>zxtres_status_ext.sv</code>.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="resources">
+  <header class="section-header"><div class="section-number">04</div><div><p class="eyebrow">Vivado results</p><h2>FPGA resources and timing</h2></div></header>
+  <p class="intro">Post-route figures of the release builds (<code>utilization.rpt</code> and <code>timing_summary.rpt</code> beside each <code>.ZX3</code>). WNS and WHS are the worst setup and hold slack; positive means timing is met.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Build</th><th>LUTs</th><th>Use</th><th>Registers</th><th>Block RAM</th><th>DSP</th><th>WNS</th><th>WHS</th></tr></thead>
+    <tbody>
+      <tr><td>ZXTRES+ · full core (A100T)</td><td class="num">24,972 / 63,400</td><td><div class="bar" title="39.4 %"><span style="width:39.4%"></span></div> 39.4 %</td><td class="num">17,332</td><td class="num">34 / 135</td><td class="num">22</td><td class="num">+0.253 ns</td><td class="num">+0.042 ns</td></tr>
+      <tr><td>ZXTRES++ · full core (A200T)</td><td class="num">24,960 / 133,800</td><td><div class="bar" title="18.7 %"><span style="width:18.7%"></span></div> 18.7 %</td><td class="num">17,328</td><td class="num">34 / 365</td><td class="num">22</td><td class="num">+0.471 ns</td><td class="num">+0.034 ns</td></tr>
+      <tr><td>ZXTRES · PCXT_CGAHGC</td><td class="num">18,394 / 20,800</td><td><div class="bar" title="88.4 %"><span style="width:88.4%"></span></div> 88.4 %</td><td class="num">12,913</td><td class="num">32.5 / 50</td><td class="num">18</td><td class="num">+0.400 ns</td><td class="num">+0.062 ns</td></tr>
+      <tr><td>ZXTRES · PCXT_EGA</td><td class="num">18,194 / 20,800</td><td><div class="bar" title="87.5 %"><span style="width:87.5%"></span></div> 87.5 %</td><td class="num">13,202</td><td class="num">31 / 50</td><td class="num">12</td><td class="num">+0.648 ns</td><td class="num">+0.036 ns</td></tr>
+      <tr><td>ZXTRES · TANDY1000</td><td class="num">16,780 / 20,800</td><td><div class="bar" title="80.7 %"><span style="width:80.7%"></span></div> 80.7 %</td><td class="num">11,553</td><td class="num">31.5 / 50</td><td class="num">17</td><td class="num">+0.356 ns</td><td class="num">+0.059 ns</td></tr>
+      <tr><td>ZXTRES · PCJR</td><td class="num">16,657 / 20,800</td><td><div class="bar" title="80.1 %"><span style="width:80.1%"></span></div> 80.1 %</td><td class="num">11,346</td><td class="num">31 / 50</td><td class="num">16</td><td class="num">+0.166 ns</td><td class="num">+0.048 ns</td></tr>
+    </tbody>
+  </table></div>
+  <p>The A35T builds are limited by LUTs, not by block RAM: the full core needs about 25,000 LUTs and the XC7A35T has 20,800. No build has critical warnings except PCXT_EGA and TANDY1000, which have two of the same kind: a <code>set_false_path</code> on the reset-latched machine and card registers that those builds do not contain (Vivado 12-4739, no object found), harmless.</p>
+</section>
+
+<section class="section" id="fit">
+  <header class="section-header"><div class="section-number">05</div><div><p class="eyebrow">Optimisation</p><h2>Making the core fit the XC7A35T</h2></div></header>
+  <p class="intro">Two changes to the shared machine RTL made the whole core smaller, on every board and on MiSTer alike; build switches then leave out what a single-machine build does not need.</p>
+  <div class="grid">
+    <div class="panel"><h3>vram_fetch snoop</h3><p>The video fetch engine computed a 24-bit offset and compare for every entry and every write word. It now takes one difference per entry and an AND-OR per word. Out of context on the XC7A35T: depth 3×1 word 1,592 → 671 LUTs, 4×1 2,109 → 880, 4×2 2,872 → 1,216. A lockstep bench against the previous version shows no difference.</p></div>
+    <div class="panel"><h3>Microcode in block RAM</h3><p>Vivado had turned the 4K×32 MCL86 microcode ROM into LUTs. Its read is already registered, so a block RAM gives the same one-clock latency. The narrow operand-select copy stays a LUT ROM, as it starts the critical path.</p></div>
+    <div class="panel"><h3>ENABLE_RTC, ENABLE_COM2</h3><p>New build switches leave out the RTC/CMOS device and the second serial port: the ports are not decoded, the device raises no interrupt and synthesis trims it. Both default to 1, so the MiSTer profiles are unchanged.</p></div>
+    <div class="panel"><h3>Builds without EMS</h3><p>The EMS map reset used <code>reset || !`ENABLE_EMS</code> as an asynchronous reset, a constant one when EMS is left out, which Vivado refuses (Synth 8-91). The asynchronous reset is now the reset alone, and a build without EMS clears the map synchronously.</p></div>
+  </div>
+  <p>With these changes the A100T full core went from 29.8k LUTs and 30 block RAM tiles (17 November 2026) to 25.0k LUTs and 34 tiles (22 November). Each A35T profile then leaves out C/MS, COM2, MIDI and, except the PCjr, the RTC, plus the machines and cards it does not carry.</p>
+  <h3>The OSD of a single-machine build</h3>
+  <p>The configuration string of the OSD is the same in every build, but the firmware is built with the build's profile (<code>build_firmware.sh &lt;profile&gt;</code> writes its <code>VERILOG_MACRO</code> lines into <code>build_features.h</code>). Its <code>menu_mask()</code> uses the build's fixed machine and card instead of the status bits and hides the entries of hardware the build lacks: Machine, Video card, Audio 220h, SB IRQ and UMB C400. The status bits keep one layout, so <code>PCXT.CFG</code> is read the same way by every build. The core itself ignores the machine and card bits in a single-machine build. All builds use the EGA layout of the MiSTer status word (<code>LAYOUT_EGA=1</code>), the one the ZXTres OSD feeds.</p>
+</section>
+
+<section class="section" id="building">
+  <header class="section-header"><div class="section-number">06</div><div><p class="eyebrow">From source</p><h2>Building</h2></div></header>
+  <p>The build needs Vivado 2025.2, Python 3, and <code>nasm</code>, <code>gcc</code> and <code>make</code> for the controller firmware (from WSL if the host is Windows). The DeMiSTify and <code>mist-modules</code> submodules must be checked out. Run the scripts from the repository root, from Git Bash on Windows or from Linux:</p>
+<pre><code>git submodule update --init --recursive
+zxtres/scripts/build_firmware.sh                 # EightThirtyTwo toolchain and firmware (full core)
+zxtres/scripts/build_pcxt.sh                     # ZXTRES+ (A100T), full core
+zxtres/scripts/build_pcxt.sh A200T               # ZXTRES++ (A200T), full core
+PCXT_PROFILE=zx3_a35t_pcxt_cgahgc zxtres/scripts/build_pcxt.sh A35T
+PCXT_PROFILE=zx3_a35t_pcxt_ega    zxtres/scripts/build_pcxt.sh A35T
+PCXT_PROFILE=zx3_a35t_tandy1000   zxtres/scripts/build_pcxt.sh A35T
+PCXT_PROFILE=zx3_a35t_pcjr        zxtres/scripts/build_pcxt.sh A35T</code></pre>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Board</th><th>Profile</th><th>Output</th></tr></thead>
+    <tbody>
+      <tr><td>A100T</td><td><code>mister_pcxt_full</code></td><td><code>build/zxtres-pcxt/vivado-pcxt/PCXT.ZX3</code></td></tr>
+      <tr><td>A200T</td><td><code>mister_pcxt_full</code></td><td><code>build/zxtres-pcxt/vivado-pcxt-a200t/PCXT.ZX3</code></td></tr>
+      <tr><td>A35T</td><td><code>zx3_a35t_*</code> (default <code>zx3_a35t_pcxt_cgahgc</code>)</td><td><code>build/zxtres-pcxt/vivado-pcxt-a35t-&lt;profile&gt;/PCXT.ZX3</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>The <code>.bit</code> file and the timing and utilization reports are written next to the <code>.ZX3</code>. <code>build_pcxt.sh</code> first checks that the committed guest is not stale (<code>make_guest.py --check</code>) and rebuilds the firmware with the build's profile. <code>build_pcxt.sh A100T project</code> (or <code>A200T</code>) writes <code>zxtres/vivado/create_project_A100T.tcl</code>, which creates the Vivado project from inside Vivado on any host; the A35T builds have no project mode.</p>
+  <p>The MiSTer Quartus project (<code>PCXT.qsf</code>, <code>config.tcl</code>, the <code>mister_*</code> profiles) is still in the repository, as the source of the machine; it is not used for the ZXTres builds.</p>
+</section>
+
+<section class="section" id="verification">
+  <header class="section-header"><div class="section-number">07</div><div><p class="eyebrow">Checks</p><h2>Verification</h2></div></header>
+  <ul>
+    <li><code>zxtres/scripts/make_guest.py --check</code>: the committed guest matches <code>PCXT.sv</code>, every OSD file entry finds its own extensions, and the configuration string stays within the 2047 bytes <code>user_io</code> serves.</li>
+    <li>Unit tests in <code>zxtres/sim</code> (WSL or Linux, Verilator and Icarus): the IDE and floppy stores against the machine's own devices, the line doubler, the scan converter, the video information page, the OSD, the keyboard relay with the machine's <code>KFPS2KB</code>, the ROM loading queue, the status bits 64–127, the serial mouse and the ICAP warm boot of the return to the Spectrum core.</li>
+    <li>Whole-board simulation, <code>zxtres/sim/run_bios_sim.sh</code>: the real firmware on the GHDL-converted controller loads the ROMs from a simulated card and the machine runs the BIOS POST. <code>+OSD_TOUR</code> walks the OSD pages with the keyboard and <code>render_osd_tour.sh</code> draws them; <code>PCXT_PROFILE</code> selects the build.</li>
+    <li>Each RTL directory of the machine has a <code>TESTBENCH/</code> folder of focused benches, shared with the MiSTer core.</li>
+    <li>A Vivado build with no critical warnings and positive WNS and WHS.</li>
+  </ul>
+  <p>The detailed state of the port, the decisions behind it and what remains are in <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/blob/main/zxtres/SPEC.md"><code>zxtres/SPEC.md</code></a>.</p>
+</section>
+
+</article>
+</main>
+<footer class="footer"><strong>PCXT · ZXTres</strong> · IBM PC/XT, Tandy 1000 and IBM PCjr for the ZXTRES, ZXTRES+ and ZXTRES++ · <a href="https://github.com/aitorgomez-net/PCXT_ZXTres">github.com/aitorgomez-net/PCXT_ZXTres</a> · GPL v3</footer>
+</body>
+</html>

@@ -1,5 +1,10 @@
 # Adapting the core to an 8086: source of truth
 
+> These notes come from the PCXT MiSTer core, whose CPU and chipset RTL the
+> ZXTres builds share unchanged. The tests on hardware they mention were made
+> on MiSTer; the Quartus and Cyclone V details apply to that platform. On the
+> ZXTres the CPU type is the **CPU Type** option of the OSD page Hardware.
+
 An OSD option to run the machine as an 8086 instead of an 8088, applied with
 Reset & Apply, with no hacks. This document is the reference the work is done
 against: what the real hardware did, what a known-good software implementation

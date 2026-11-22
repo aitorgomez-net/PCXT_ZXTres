@@ -1,16 +1,25 @@
-# PCXT for ZXTRES+ and ZXTRES++
+# PCXT for the ZXTRES, ZXTRES+ and ZXTRES++: the port
 
 ![PCXT ZXTres boot splash](splash/splash_320x200_preview.png)
 
-PCXT for the ZXTRES+ and ZXTRES++ is the IBM PC/XT, Tandy 1000 and IBM PCjr
-core of [PCXT_MiSTer](https://github.com/MiSTer-devel/PCXT_MiSTer) for the
-boards' Xilinx Artix-7: the XC7A100T of the ZXTRES+ and the XC7A200T of the
-ZXTRES++, which are otherwise the same board. There is one build for each
-FPGA, and a file for one does not load on the other. The plain ZXTRES, with a
-smaller FPGA, is not supported.
+PCXT for the ZXTRES boards is the IBM PC/XT, Tandy 1000 and IBM PCjr core of
+[PCXT_MiSTer](https://github.com/aitorgomez-net/PCXT_MiSTer) for the boards'
+Xilinx Artix-7: the XC7A100T of the ZXTRES+ and the XC7A200T of the ZXTRES++,
+which are otherwise the same board, carry the full core, one build for each
+FPGA; a file for one does not load on the other. The plain ZXTRES, with the
+smaller XC7A35T, does not hold the whole core: it has four builds of one
+machine each instead (see [Builds for the ZXTRES](#builds-for-the-zxtres-a35t)),
+not yet tested on the board.
 
-The machine is the one of the MiSTer core, built with the options of its
-`mister_pcxt_full` profile: the MCL86 8088/8086 CPU, the KFPC-XT chipset, the
+The user documentation is the site in [`docs/`](../docs/index.html), published
+at <https://aitorgomez-net.github.io/PCXT_ZXTres/>:
+[getting started](../docs/guide.html), [boards and builds](../docs/builds.html),
+[OSD reference](../docs/osd.html) and the
+[technical report](../docs/report/CORE_REPORT.html). This file and
+[SPEC.md](SPEC.md) describe the port itself.
+
+The machine of the ZXTRES+ and ZXTRES++ is the one of the MiSTer core, built
+with the options of its `mister_pcxt_full` profile: the MCL86 8088/8086 CPU, the KFPC-XT chipset, the
 CGA (with the Tandy 1000 and PCjr modes), Hercules and EGA cards, chosen in the
 OSD, floppy and XT-IDE storage, EMS and UMBs, a serial mouse, a gameport, and
 the Sound Blaster, OPL2, C/MS and Tandy audio devices. Only the logic around
@@ -27,18 +36,19 @@ scripts.
 The core is loaded from the microSD card as a `.ZX3` file, with the NMI
 browser of the ZX Spectrum core. It does not replace the installed cores.
 
-The machine description and the CPU, memory and video documentation are in
-the [main README](../README.md), which applies here as well, except where the
-table [below](#what-the-board-does-not-have) says otherwise.
+The machine description is in the [main README](../README.md) and the
+[technical report](../docs/report/CORE_REPORT.html).
 
 ## State of the port
 
-**First tests on the ZXTRES+ (A100T) board are under way.** See
+**First tests on the ZXTRES+ (A100T) board are under way.** The ZXTRES++
+(A200T) and ZXTRES (A35T) builds meet timing but have not been tried on a
+board. See
 [SPEC.md](SPEC.md) for what is built, what is simulated and what remains.
 
 ## What the board does not have
 
-| MiSTer feature | On the ZXTRES+ |
+| MiSTer feature | On the ZXTRES boards |
 | --- | --- |
 | MiSTer scaler, HDMI, aspect ratio, HQ2x, scanlines | VGA output at 480p, or at 15.7 kHz; the 350-line EGA and Hercules pictures go through a scan converter in the board's SRAM instead of the MiSTer DDR3 framebuffer. DisplayPort is not implemented. |
 | COM2, MIDI, MPU-401 and MT32-pi on the user port | The board has no user port. |
@@ -54,7 +64,7 @@ in the root when there is no such folder.
 
 | File | What it is |
 | --- | --- |
-| `PCXT.ROM` | The PC/XT BIOS (the first 64 KiB of the file are used). The [BIOS Builder](../SW/ROMs) of the MiSTer core prepares it and the others. |
+| `PCXT.ROM` | The PC/XT BIOS (the first 64 KiB of the file are used). The [BIOS Builder](https://aitorgomez-net.github.io/PCXT_MiSTer/BIOS_Builder/) of the MiSTer core (offline copy: [`SW/ROMs/BIOS_Builder.html`](../SW/ROMs/BIOS_Builder.html)) prepares it and the others; rename its output as the [guide](../docs/guide.html#card) shows. |
 | `TANDY.ROM` | The Tandy 1000 BIOS, for the Tandy 1000 machine. |
 | `PCJR.ROM` | The PCjr BIOS, for the PCjr machine. |
 | `EGA.ROM` | The EGA BIOS, for the EGA card. |
@@ -96,9 +106,31 @@ PS/2 mouse in before the core starts, or before a reset from the OSD, because
 the converter handshakes with it at that point.
 
 Ready-made `.ZX3` files are in [releases](../releases), named by build date,
-in `A100T-board` for the ZXTRES+ and `A200T-board` for the ZXTRES++, each with
-the same build as a `.BIT` file for the core menu of the MiST middle board; a
-file for one board does not load on the other.
+in `A100T-board` for the ZXTRES+, `A200T-board` for the ZXTRES++ and
+`A35T-board` for the ZXTRES, each with the same build as a `.BIT` file for the
+core menu of the MiST middle board; a file for one board does not load on the
+other.
+
+### Builds for the ZXTRES (A35T)
+
+The XC7A35T holds one machine at a time, so the ZXTRES has four builds, each
+named after the machine it carries (`<build>_<date>`). They are the core
+of the ZXTRES+ less what does not fit. The machine and the video card are
+fixed by the build, in the core and in the OSD: the firmware is built with the
+build's profile, so the menu has no *Machine* or *Video card* entry and hides
+the entries of hardware the build lacks (see the
+[OSD per build](../docs/osd.html#builds)). None has C/MS, COM2 or MIDI, and
+only the PCjr keeps the RTC device. All four use the EGA layout of the MiSTer
+status word (`LAYOUT_EGA=1`), the one the OSD feeds. Resources and timing are
+on the [boards and builds](../docs/builds.html#resources) page.
+**They have not been tested on the board yet.**
+
+| Build | Machine | Video | Sound | Left out besides the above |
+| --- | --- | --- | --- | --- |
+| `PCXT_CGAHGC` | IBM PC/XT | CGA and Hercules | OPL2, Sound Blaster, SN76489 | EGA, Tandy 1000, PCjr |
+| `PCXT_EGA` | IBM PC/XT | EGA | OPL2, Sound Blaster, SN76489 | CGA, Hercules, Tandy 1000, PCjr |
+| `TANDY1000` | Tandy 1000 | CGA with the Tandy modes | SN76489, OPL2 (AdLib) | Hercules, EGA, Sound Blaster, PC/XT, PCjr |
+| `PCJR` | IBM PCjr | CGA with the PCjr video gate array | SN76489 | OPL2, Sound Blaster, EMS (a PCjr has no slots), PC/XT, Tandy 1000 |
 
 ## Keys and the OSD
 
@@ -108,12 +140,13 @@ file for one board does not load on the other.
 | Cursor keys, Enter | Move in the menu, change an option or open a page |
 | Esc | Back out of a page; from the main page, close the OSD |
 | F12 | Pause the machine and scroll the credits; F12 again resumes |
+| F11 | With CGA and Hercules both present, swap the output between them |
 
 The keyboard does not reach the machine while the OSD is open. F12 alone
 stays with the machine and, on the splash, holds it.
 
 The main page lists the four drives with the name of the image in each, a
-Machine group (machine, CPU speed, write protect), and the pages *Video*
+Machine group (machine on the full core, CPU speed, write protect), and the pages *Video*
 (card, monitor, Hercules options, display tint, composite, border, frame
 stacking, and the *Output* page: CRT offsets, scandoubler, 350-line CRT
 output, splash time, video info), *Audio* (sound cards, PCjr tape sound, levels), *Hardware*
@@ -127,7 +160,9 @@ expansion memory, writable BIOS or EC00 BIOS, and shows its own RAM, tape
 sound, BIOS and cartridges; the BIOS file, the sound and the video options of
 the PCXT and of the Tandy 1000 show for that machine only, and the CGA
 options (composite, border, frame stacking) and the monitor of the EGA card
-show for their card.
+show for their card. On a ZXTRES build the machine and the card are the
+build's, and Audio 220h, SB IRQ and UMB C400 show only when the build has the
+hardware. Every page and option is in the [OSD reference](../docs/osd.html).
 
 ## Video outputs
 
@@ -148,7 +183,17 @@ scripts from the repository root, from Git Bash on Windows or from Linux:
 zxtres/scripts/build_firmware.sh    # EightThirtyTwo toolchain and firmware
 zxtres/scripts/build_pcxt.sh        # Vivado, ZXTRES+ (A100T), to a .ZX3 file
 zxtres/scripts/build_pcxt.sh A200T  # the same for the ZXTRES++
+PCXT_PROFILE=zx3_a35t_pcxt_ega zxtres/scripts/build_pcxt.sh A35T  # one ZXTRES build
 ```
+
+For the ZXTRES, `PCXT_PROFILE` is one of the `profiles/zx3_a35t_*` profiles
+(`zx3_a35t_pcxt_cgahgc` by default) and the result is in
+`build/zxtres-pcxt/vivado-pcxt-a35t-<profile>`.
+
+`build_pcxt.sh` builds the controller firmware with the same profile
+(`build_firmware.sh <profile>`, which writes the profile's `VERILOG_MACRO`
+lines into `build_features.h`): the OSD follows the hardware of the build.
+`build_firmware.sh` alone builds the full core's firmware.
 
 The result is `build/zxtres-pcxt/vivado-pcxt/PCXT.ZX3` (`vivado-pcxt-a200t`
 for the ZXTRES++), next to the `.bit` file and the timing and utilization
@@ -177,7 +222,10 @@ the machine's own keyboard converter, the ROM loading queue, the status bits
 Spectrum core. The
 whole-board simulation (`run_bios_sim.sh`) runs the real controller firmware,
 loads the ROMs from a simulated card, runs the BIOS POST and can walk the OSD
-pages (`+OSD_TOUR`, rendered to PNG by `render_osd_tour.sh`).
+pages (`+OSD_TOUR`, rendered to PNG by `render_osd_tour.sh`). `PCXT_PROFILE`
+selects the build to simulate, and `ZXTRES_FIRMWARE_OUT` gives the
+simulation a firmware directory of its own, so it can run beside a Vivado
+build.
 
 ## Credits and licenses
 

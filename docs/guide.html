@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Getting started with PCXT on the ZXTRES, ZXTRES+ and ZXTRES++ boards: which file to load, the microSD card, the first boot, video, keys, joysticks, mouse and storage.">
+<title>PCXT ZXTres · Getting started</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="hero">
+  <div class="hero-top">
+    <a class="brand" href="index.html"><span class="brand-mark">8088</span><span>PCXT · ZXTres</span></a>
+    <nav class="site-nav" aria-label="Documentation">
+      <a href="index.html">Home</a>
+      <a href="guide.html" aria-current="page">Getting started</a>
+      <a href="builds.html">Boards &amp; builds</a>
+      <a href="osd.html">OSD</a>
+      <a href="report/CORE_REPORT.html">Technical report</a>
+      <a href="https://github.com/aitorgomez-net/PCXT_ZXTres">GitHub</a>
+    </nav>
+  </div>
+  <div class="hero-inner">
+    <p class="kicker">User guide</p>
+    <h1>Getting <span>started</span></h1>
+    <p class="lead">From the release files to a DOS prompt: which file goes with each board, what the microSD card needs, how the core is loaded and what the board connects to.</p>
+  </div>
+</header>
+
+<main class="page">
+<nav class="toc" aria-label="Contents">
+  <p class="toc-title">Contents</p>
+  <a href="#files"><span class="nav-index">01</span><span>Which file</span></a>
+  <a href="#card"><span class="nav-index">02</span><span>The microSD card</span></a>
+  <a href="#load"><span class="nav-index">03</span><span>Loading the core</span></a>
+  <a href="#first-boot"><span class="nav-index">04</span><span>First boot</span></a>
+  <a href="#video"><span class="nav-index">05</span><span>Video output</span></a>
+  <a href="#input"><span class="nav-index">06</span><span>Keys and input</span></a>
+  <a href="#storage"><span class="nav-index">07</span><span>Disks and settings</span></a>
+  <a href="#audio"><span class="nav-index">08</span><span>Audio</span></a>
+  <a href="#trouble"><span class="nav-index">09</span><span>Troubleshooting</span></a>
+</nav>
+<article class="article">
+
+<section class="section" id="files">
+  <header class="section-header"><div class="section-number">01</div><div><p class="eyebrow">Releases</p><h2>Which file for which board</h2></div></header>
+  <p class="intro">The ZXTRES family uses the same board with three sizes of Xilinx Artix-7. A bitstream is made for one FPGA and does not load on another, so take the file from the folder of your board in <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/tree/main/releases"><code>releases/</code></a>. Files are named by build date (<code>_YYYYMMDD</code>).</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Board</th><th>FPGA</th><th>Folder</th><th>Files</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>ZXTRES+</td><td>XC7A100T</td><td><code>A100T-board</code></td><td><code>PCXT_&lt;date&gt;</code></td><td>The full core: PC/XT, Tandy 1000 and PCjr, CGA/Hercules or EGA, chosen in the OSD.</td></tr>
+      <tr><td>ZXTRES++</td><td>XC7A200T</td><td><code>A200T-board</code></td><td><code>PCXT_&lt;date&gt;</code></td><td>The same full core, built for the larger FPGA.</td></tr>
+      <tr><td>ZXTRES</td><td>XC7A35T</td><td><code>A35T-board</code></td><td><code>PCXT_CGAHGC</code>, <code>PCXT_EGA</code>, <code>TANDY1000</code>, <code>PCJR</code></td><td>Four builds of one machine each, because the full core does not fit. See <a href="builds.html">Boards &amp; builds</a>.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Each build comes as a <code>.ZX3</code> file, loaded from the ZX Spectrum core, and as a <code>.BIT</code> file with the same contents for the core menu of the MiST firmware on the middle board.</p>
+  <div class="callout warning"><strong>Test status</strong><p>The ZXTRES+ (A100T) build is being tried on the board. The ZXTRES++ (A200T) build and the four ZXTRES (A35T) builds meet timing in Vivado but have not been tried on a board yet.</p></div>
+</section>
+
+<section class="section" id="card">
+  <header class="section-header"><div class="section-number">02</div><div><p class="eyebrow">Storage</p><h2>Preparing the microSD card</h2></div></header>
+  <p class="intro">The core looks for its files in a folder <code>PCXT</code> at the root of the card, or in the root itself when there is no such folder. Only the BIOS of the machine and card you use is needed.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>File</th><th>Needed by</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><code>PCXT.ROM</code></td><td>PC/XT</td><td>The PC/XT BIOS; the first 64 KiB of the file are used.</td></tr>
+      <tr><td><code>TANDY.ROM</code></td><td>Tandy 1000</td><td>The Tandy 1000 BIOS.</td></tr>
+      <tr><td><code>PCJR.ROM</code></td><td>PCjr</td><td>The PCjr BIOS.</td></tr>
+      <tr><td><code>EGA.ROM</code></td><td>EGA card</td><td>The IBM EGA BIOS.</td></tr>
+      <tr><td><code>EC00.ROM</code></td><td>Hard disks</td><td>The XT-IDE option ROM (EC00 slot), up to 16 KiB. Some system BIOS images already contain XT-IDE.</td></tr>
+      <tr><td><code>PCXT.CFG</code></td><td>Saving settings</td><td>512 bytes of zeroes, made once: <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/blob/main/releases/PCXT.CFG"><code>releases/PCXT.CFG</code></a> is one. The controller can write a file but not create one.</td></tr>
+      <tr><td>Disk images</td><td>—</td><td>Anywhere on the card, chosen in the OSD: hard disks <code>.VHD</code> or <code>.IMG</code>, floppies <code>.IMG</code>, <code>.IMA</code> or <code>.VFD</code>, PCjr cartridges <code>.JRC</code>.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Getting the BIOS files</h3>
+  <p>The ROMs are the same as for the MiSTer core, only the names change. The <a href="https://aitorgomez-net.github.io/PCXT_MiSTer/BIOS_Builder/">BIOS Builder</a> of the MiSTer project prepares every one of them in the browser, with nothing uploaded; a copy runs offline from <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/blob/main/SW/ROMs/BIOS_Builder.html"><code>SW/ROMs/BIOS_Builder.html</code></a>. Rename what it produces:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>BIOS Builder output</th><th>Name on the ZXTres card</th></tr></thead>
+    <tbody>
+      <tr><td><code>pcxt_*.rom</code> (Micro8088, Turbo XT, IBM 5160, Juko ST)</td><td><code>PCXT.ROM</code></td></tr>
+      <tr><td><code>tandy.rom</code></td><td><code>TANDY.ROM</code></td></tr>
+      <tr><td><code>pcjr.rom</code></td><td><code>PCJR.ROM</code></td></tr>
+      <tr><td><code>ega_bios.rom</code></td><td><code>EGA.ROM</code></td></tr>
+      <tr><td><code>ide_xtl.rom</code></td><td><code>EC00.ROM</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Open images are also in the repository: <code>SW/ROMs/pcxt_pcxt31.rom</code> (Turbo XT BIOS), <code>SW/ROMs/pcxt_xtsergey.rom</code> (Micro8088 BIOS) and <code>SW/ROMs/ide_xtl.rom</code> (XTIDE Universal BIOS). Original copyrighted ROM dumps are not distributed.</p>
+  <p>A FreeDOS hard-disk image to start with is <code>games/PCXT/hd_image.zip</code> in the repository; extract it to the card.</p>
+<pre><code>microSD
+├── PCXT/
+│   ├── PCXT.ROM      PC/XT BIOS
+│   ├── EC00.ROM      XT-IDE BIOS
+│   ├── EGA.ROM       (EGA card only)
+│   ├── TANDY.ROM     (Tandy 1000 only)
+│   ├── PCJR.ROM      (PCjr only)
+│   ├── PCXT.CFG      512 zero bytes
+│   └── Freedos_HD.vhd from games/PCXT/hd_image.zip
+└── PCXT_20261122.ZX3 the core for your board</code></pre>
+</section>
+
+<section class="section" id="load">
+  <header class="section-header"><div class="section-number">03</div><div><p class="eyebrow">Start-up</p><h2>Loading the core</h2></div></header>
+  <ol>
+    <li>Copy the <code>.ZX3</code> file of your board to the card, with the files above.</li>
+    <li>In the ZX Spectrum core, press <kbd>F5</kbd> for the NMI browser, select the file and load it. It goes to a temporary flash slot and does not replace the installed cores.</li>
+    <li>To go back to the Spectrum core, choose <strong>Reload ZX core</strong> on the OSD page <strong>Settings</strong> and confirm: the FPGA reloads the Spectrum core from the board's flash.</li>
+  </ol>
+  <p>With the MiST firmware on the middle board, put the <code>.BIT</code> file of the same release in the card's <code>MIST</code> folder instead: the core menu shown at power-up lists it by its file name. The <code>PCXT</code> folder is the same either way.</p>
+  <p>Plug the PS/2 mouse in before the core starts, or before a reset from the OSD: the converter handshakes with it at that point.</p>
+</section>
+
+<section class="section" id="first-boot">
+  <header class="section-header"><div class="section-number">04</div><div><p class="eyebrow">Configuration</p><h2>First boot</h2></div></header>
+  <figure><img src="assets/splash_zxtres.png" width="640" height="480" alt="The PCXT ZXTres boot splash: PCXT ZXTres, PC/XT + PCjr + Tandy 1000, an IBM PC, the 8086/88 chip and the CGA, HGC and EGA cards"><figcaption>The boot splash. <kbd>F12</kbd> pauses it and shows the credits; <kbd>Win</kbd>+<kbd>F12</kbd> opens the OSD.</figcaption></figure>
+  <ol>
+    <li>Open the OSD with <kbd>Win</kbd>+<kbd>F12</kbd>.</li>
+    <li>On the full core (ZXTRES+ and ZXTRES++), choose the <strong>Machine</strong> on the main page and, for a PC/XT, the <strong>Video card</strong> on the page <strong>Video</strong>. The ZXTRES builds have one machine and one card and show neither entry.</li>
+    <li>On the page <strong>BIOS</strong>, check that the BIOS of that machine (and the EGA BIOS for the EGA card) is loaded; any file of the card can be chosen instead of the default names.</li>
+    <li>Mount a floppy or a hard-disk image from the main page.</li>
+    <li>Choose <strong>Reset &amp; apply</strong>: the machine, the card, the CPU type and the PCjr RAM size are latched at reset, and a hard disk chosen while the machine runs is mounted then.</li>
+    <li>On the page <strong>Settings</strong>, <strong>Save settings</strong> writes everything to <code>PCXT.CFG</code>, including the image and BIOS paths, so the next start mounts them again.</li>
+  </ol>
+  <div class="callout"><strong>A missing BIOS holds the splash</strong><p>While the BIOS of the chosen machine, or the EGA BIOS, is missing, the splash stays on screen and the machine is held in reset. This is expected: load the file on the page BIOS.</p></div>
+  <p>A practical first test is the PC/XT with the Micro8088 or Turbo XT BIOS, <code>EC00.ROM</code>, and the FreeDOS hard-disk image.</p>
+</section>
+
+<section class="section" id="video">
+  <header class="section-header"><div class="section-number">05</div><div><p class="eyebrow">Display</p><h2>Video output</h2></div></header>
+  <p class="intro">The board has a VGA connector. The core sends 31 kHz VGA by default and can send 15 kHz for a television or an arcade monitor through a suitable adapter. There is no HDMI, scaler or DisplayPort.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Source</th><th>Output</th></tr></thead>
+    <tbody>
+      <tr><td>200-line CGA, Tandy, PCjr and EGA modes</td><td>Line doubled to 31.4 kHz, 640×480 at about 60 Hz (<strong>Scandoubler: Auto</strong>).</td></tr>
+      <tr><td>350-line EGA and Hercules/MDA modes</td><td><strong>350-line CRT</strong>: <em>480p 31 kHz</em> (720×480 at 59.94 Hz, the default), <em>Native</em>, <em>480i 15 kHz</em> or <em>240p 15 kHz</em>, through a scan converter in the board's SRAM.</td></tr>
+      <tr><td>15 kHz output</td><td><strong>Scandoubler: Off</strong> leaves the 200-line modes at 15.7 kHz with positive syncs; the vertical sync is held to 3 lines so that a VGA monitor that takes the picture as 480i accepts it.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The page <strong>Video › Output</strong> also has the CRT offsets and a <strong>Video info</strong> page, which shows what the machine draws and what leaves the VGA pins, measured in the FPGA. The picture options (display tint, composite colour, border, CRTC frame stacking) are described in the <a href="osd.html#video">OSD reference</a>.</p>
+</section>
+
+<section class="section" id="input">
+  <header class="section-header"><div class="section-number">06</div><div><p class="eyebrow">Controls</p><h2>Keys, joysticks and mouse</h2></div></header>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Win</kbd>+<kbd>F12</kbd></td><td>Open the OSD; the keyboard does not reach the machine while it is open.</td></tr>
+      <tr><td>Cursor keys, <kbd>Enter</kbd></td><td>Move in the menu, change an option or open a page; left and right change the option under the cursor.</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Back out of a page; from the main page, close the OSD.</td></tr>
+      <tr><td><kbd>F12</kbd></td><td>Pause the machine and scroll the credits; <kbd>F12</kbd> again resumes. On the splash it holds the countdown.</td></tr>
+      <tr><td><kbd>F11</kbd></td><td>With both the CGA and the Hercules card (PC/XT with CGA/HGC), swap the output between them.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid">
+    <div class="panel"><h3>Keyboard</h3><p>A PS/2 keyboard. The machine gets XT scan codes, Tandy codes or PCjr infrared frames, depending on the machine.</p></div>
+    <div class="panel"><h3>Mouse</h3><p>A PS/2 mouse appears to DOS as a serial mouse on COM1; use a driver such as CTMOUSE (in <code>hdd/CTMOUSE</code>).</p></div>
+    <div class="panel"><h3>Joysticks</h3><p>The two DB9 ports give directions and buttons only, so <strong>Digital</strong> is the first choice of <strong>Joystick 1/2</strong>. <strong>Swap Joysticks</strong> exchanges them.</p></div>
+  </div>
+</section>
+
+<section class="section" id="storage">
+  <header class="section-header"><div class="section-number">07</div><div><p class="eyebrow">Media</p><h2>Disks, cartridges and settings</h2></div></header>
+  <ul>
+    <li><strong>Floppies A and B</strong> are mounted at once. The PCjr has drive A only.</li>
+    <li><strong>Hard disks 0 and 1</strong> are served to the XT-IDE BIOS (<code>EC00.ROM</code>). A hard disk chosen while the machine runs is mounted at the next <strong>Reset &amp; apply</strong>, so the BIOS detects it; the page Info marks it "(reset)" until then.</li>
+    <li><strong>PCjr cartridges</strong> (<code>.JRC</code>) go in the two cartridge entries of the page BIOS; one stays in for the session only, and the machine restarts to see it.</li>
+    <li><strong>Dismounting:</strong> open the file selector of a drive or cartridge; its first row, <em>Unmount NAME</em>, removes the image. <em>Back</em> leaves it as it was.</li>
+    <li><strong>Settings</strong> are kept in <code>PCXT.CFG</code> (OSD options, four image paths and five BIOS paths). Without that file nothing is mounted at start and the defaults apply.</li>
+  </ul>
+  <p>The supplied <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/blob/main/hdd/CONFIG.SYS"><code>hdd/CONFIG.SYS</code></a> was written for an EMS frame at C000h; on the ZXTres the frame is at D000h, so move the <code>/p:</code> frame of LTEMM and the USE!UMBS range to D000h.</p>
+</section>
+
+<section class="section" id="audio">
+  <header class="section-header"><div class="section-number">08</div><div><p class="eyebrow">Sound</p><h2>Audio</h2></div></header>
+  <p>The board's audio jack (sigma-delta) and its I2S output carry the same stereo mix: PC speaker, AdLib (OPL2), Sound Blaster Pro or C/MS, SN76489 and the PCjr tape line, as far as the build has them (see the <a href="builds.html#matrix">feature matrix</a>). <strong>Audio 220h</strong> picks C/MS or the Sound Blaster, which collide on 226h/227h. There is no MIDI or MT32-pi: the board has no user port.</p>
+</section>
+
+<section class="section" id="trouble">
+  <header class="section-header"><div class="section-number">09</div><div><p class="eyebrow">Help</p><h2>Troubleshooting</h2></div></header>
+  <div class="table-wrap"><table>
+    <thead><tr><th>What you see</th><th>What to check</th></tr></thead>
+    <tbody>
+      <tr><td>The splash never ends</td><td>The BIOS of the chosen machine (or the EGA BIOS) is missing: page BIOS. On the full core, check that <strong>Machine</strong> is the one whose BIOS you have.</td></tr>
+      <tr><td>Settings are not kept</td><td><code>PCXT.CFG</code> must exist (512 zero bytes) in the <code>PCXT</code> folder; the page Info says "PCXT.CFG missing" otherwise.</td></tr>
+      <tr><td>The hard disk is not found</td><td><code>EC00.ROM</code> (XT-IDE) must be loaded, and a disk chosen while the machine runs needs <strong>Reset &amp; apply</strong>.</td></tr>
+      <tr><td>No mouse in DOS</td><td>Plug the mouse in before loading the core or before a reset, and load a serial mouse driver for COM1.</td></tr>
+      <tr><td>The monitor shows nothing with 15 kHz</td><td>Set <strong>Scandoubler</strong> back to <em>Auto</em> and <strong>350-line CRT</strong> to <em>480p 31 kHz</em> for a VGA monitor.</td></tr>
+      <tr><td>The file does not load</td><td>The <code>.ZX3</code> must be the one of your FPGA (A35T, A100T or A200T).</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</article>
+</main>
+<footer class="footer"><strong>PCXT · ZXTres</strong> · IBM PC/XT, Tandy 1000 and IBM PCjr for the ZXTRES, ZXTRES+ and ZXTRES++ · <a href="https://github.com/aitorgomez-net/PCXT_ZXTres">github.com/aitorgomez-net/PCXT_ZXTres</a> · GPL v3</footer>
+</body>
+</html>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Documentation and tools for PCXT, an IBM PC/XT, Tandy 1000 and IBM PCjr implementation for MiSTer FPGA">
-  <title>PCXT · Documentation</title>
+  <meta name="description" content="Documentation for PCXT on the ZXTRES, ZXTRES+ and ZXTRES++: an IBM PC/XT, Tandy 1000 and IBM PCjr for the Artix-7 boards, ported from the PCXT MiSTer core">
+  <title>PCXT ZXTres · Documentation</title>
   <style>
     :root {
       color-scheme: dark light;
@@ -43,9 +43,9 @@
     }
 
     main {
-      width: min(880px, calc(100% - 32px));
+      width: min(960px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 64px 0;
+      padding: 56px 0;
     }
 
     .kicker {
@@ -65,7 +65,17 @@
 
     h1 span { color: var(--amber); }
 
-    .lead { max-width: 620px; margin: 0 0 36px; color: var(--muted); }
+    .intro { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr) 300px; align-items: center; margin-bottom: 36px; }
+
+    .lead { margin: 0; color: var(--muted); }
+
+    .splash { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 14px; image-rendering: pixelated; }
+
+    .boards { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+    .board { padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 0.8rem/1.4 Consolas, monospace; }
+
+    .board b { color: var(--text); }
 
     .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 
@@ -89,35 +99,74 @@
 
     .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
+    .card .tag { display: inline-block; margin-bottom: 10px; color: var(--amber); font: 700 0.72rem/1 Consolas, monospace; letter-spacing: 0.12em; text-transform: uppercase; }
+
     footer { margin-top: 36px; color: var(--muted); font-size: 0.9rem; }
 
     footer a { color: var(--cyan); }
+
+    @media (max-width: 720px) { .intro { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <main>
-    <p class="kicker">MiSTer FPGA · PC/XT</p>
-    <h1>PCXT <span>documentation</span></h1>
-    <p class="lead">
-      An IBM PC/XT, Tandy 1000 and IBM PCjr for MiSTer, built around the MCL86 CPU
-      and the KFPC-XT chipset. Technical documentation and the tool that prepares
-      the firmware it needs.
-    </p>
+    <div class="intro">
+      <div>
+        <p class="kicker">ZXTRES · ZXTRES+ · ZXTRES++ · PC/XT</p>
+        <h1>PCXT <span>ZXTres</span></h1>
+        <p class="lead">
+          An IBM PC/XT, Tandy 1000 and IBM PCjr for the Artix-7 ZXTRES boards, built around
+          the MCL86 CPU and the KFPC-XT chipset. It is the machine of the PCXT MiSTer core,
+          with a board layer of its own: the DeMiSTify controller and OSD, the microSD card,
+          VGA and 15 kHz video, and the board's audio.
+        </p>
+        <div class="boards">
+          <span class="board"><b>ZXTRES+</b> A100T · full core</span>
+          <span class="board"><b>ZXTRES++</b> A200T · full core</span>
+          <span class="board"><b>ZXTRES</b> A35T · 4 builds</span>
+        </div>
+      </div>
+      <img class="splash" src="assets/splash_zxtres.png" width="640" height="480" alt="The PCXT ZXTres boot splash">
+    </div>
 
     <div class="cards">
-      <a class="card" href="report/">
-        <h2>Technical report</h2>
-        <p>The PC/XT, Tandy 1000 and PCjr in one core: architecture, video, 15 kHz output, memory map, OSD and startup.</p>
+      <a class="card" href="guide.html">
+        <span class="tag">Start here</span>
+        <h2>Getting started</h2>
+        <p>Which file for your board, the microSD card, loading the core, the first boot, video, keys, joysticks, mouse and disks.</p>
       </a>
-      <a class="card" href="BIOS_Builder/">
+      <a class="card" href="builds.html">
+        <span class="tag">Hardware</span>
+        <h2>Boards &amp; builds</h2>
+        <p>What the full core and each of the four ZXTRES builds hold, FPGA resources and timing, the optimisations, and how to build.</p>
+      </a>
+      <a class="card" href="osd.html">
+        <span class="tag">Menu</span>
+        <h2>OSD reference</h2>
+        <p>Every page and option of the on-screen menu, when it is shown, and the menu of each ZXTRES build.</p>
+      </a>
+      <a class="card" href="report/CORE_REPORT.html">
+        <span class="tag">Technical</span>
+        <h2>Technical report</h2>
+        <p>The PC/XT, Tandy 1000 and PCjr in one design: architecture, video, the ZXTres video path, memory map, OSD and startup.</p>
+      </a>
+      <a class="card" href="https://aitorgomez-net.github.io/PCXT_MiSTer/BIOS_Builder/">
+        <span class="tag">Tool · MiSTer project</span>
         <h2>BIOS Builder</h2>
-        <p>Builds the PC/XT, Tandy 1000, PCjr, EGA and XTIDE ROMs in your browser, nothing uploaded.</p>
+        <p>Builds the PC/XT, Tandy 1000, PCjr, EGA and XT-IDE ROMs in your browser, nothing uploaded. Rename them as the getting-started guide shows.</p>
+      </a>
+      <a class="card" href="https://github.com/aitorgomez-net/PCXT_ZXTres/tree/main/releases">
+        <span class="tag">Download</span>
+        <h2>Releases</h2>
+        <p>The .ZX3 and .BIT files of each board, in A35T-board, A100T-board and A200T-board, and an empty PCXT.CFG.</p>
       </a>
     </div>
 
     <footer>
       Source and README:
-      <a href="https://github.com/aitorgomez-net/PCXT_MiSTer">github.com/aitorgomez-net/PCXT_MiSTer</a>
+      <a href="https://github.com/aitorgomez-net/PCXT_ZXTres">github.com/aitorgomez-net/PCXT_ZXTres</a>
+      · Based on <a href="https://github.com/aitorgomez-net/PCXT_MiSTer">PCXT MiSTer</a>
+      · GNU GPL v3
     </footer>
   </main>
 </body>

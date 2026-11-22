@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The on-screen menu of PCXT on the ZXTRES boards: every page and option, when each one is shown, and the menu of each ZXTRES (A35T) build.">
+<title>PCXT ZXTres · OSD reference</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="hero">
+  <div class="hero-top">
+    <a class="brand" href="index.html"><span class="brand-mark">8088</span><span>PCXT · ZXTres</span></a>
+    <nav class="site-nav" aria-label="Documentation">
+      <a href="index.html">Home</a>
+      <a href="guide.html">Getting started</a>
+      <a href="builds.html">Boards &amp; builds</a>
+      <a href="osd.html" aria-current="page">OSD</a>
+      <a href="report/CORE_REPORT.html">Technical report</a>
+      <a href="https://github.com/aitorgomez-net/PCXT_ZXTres">GitHub</a>
+    </nav>
+  </div>
+  <div class="hero-inner">
+    <p class="kicker">Menu reference</p>
+    <h1>The <span>OSD</span></h1>
+    <p class="lead">Every page and option of the on-screen menu, opened with <kbd>Win</kbd>+<kbd>F12</kbd>. Entries follow the machine and the card in use, as on the MiSTer core, and each ZXTRES build shows only what it holds.</p>
+  </div>
+</header>
+
+<main class="page">
+<nav class="toc" aria-label="Contents">
+  <p class="toc-title">Contents</p>
+  <a href="#use"><span class="nav-index">01</span><span>Using the OSD</span></a>
+  <a href="#main"><span class="nav-index">02</span><span>Main page</span></a>
+  <a href="#video"><span class="nav-index">03</span><span>Video</span></a>
+  <a href="#audio"><span class="nav-index">04</span><span>Audio</span></a>
+  <a href="#hardware"><span class="nav-index">05</span><span>Hardware</span></a>
+  <a href="#bios"><span class="nav-index">06</span><span>BIOS</span></a>
+  <a href="#settings"><span class="nav-index">07</span><span>Settings</span></a>
+  <a href="#builds"><span class="nav-index">08</span><span>Per build</span></a>
+</nav>
+<article class="article">
+
+<section class="section" id="use">
+  <header class="section-header"><div class="section-number">01</div><div><p class="eyebrow">Basics</p><h2>Using the OSD</h2></div></header>
+  <p class="intro">The menu is drawn by the core over the picture, 32 columns wide. A line under the title shows the machine, the CPU speed and the card in use; a help line at the foot explains the entry under the cursor.</p>
+  <ul>
+    <li>Cursor keys move; <kbd>Enter</kbd> opens a page, runs an action or steps an option; left and right step an option back and forth.</li>
+    <li><kbd>Esc</kbd> backs out of a page and, from the main page, closes the OSD. The keyboard does not reach the machine while the OSD is open.</li>
+    <li>The machine, the PC/XT card, the CPU type, the PCjr RAM and new hard disks wait for <strong>Reset &amp; apply</strong>; the other options act at once.</li>
+    <li>Changes last until power-off unless <strong>Save settings</strong> writes them to <code>PCXT.CFG</code>.</li>
+  </ul>
+  <p>Below, a <span class="osd"><span class="when">[condition]</span></span> marks an entry that is shown only then. "PC/XT", "Tandy" and "PCjr" are the machine in use; "CGA/HGC" and "EGA" the PC/XT card (the Tandy 1000 and the PCjr count as CGA).</p>
+</section>
+
+<section class="section" id="main">
+  <header class="section-header"><div class="section-number">02</div><div><p class="eyebrow">Root</p><h2>Main page</h2></div></header>
+  <div class="osd panel"><ul>
+    <li><span class="opt">Floppy A:</span> <span class="vals">— .IMG .IMA .VFD</span></li>
+    <li><span class="opt">Floppy B:</span> <span class="vals">— .IMG .IMA .VFD</span> <span class="when">[not PCjr]</span></li>
+    <li><span class="opt">Hard disk 0:</span> / <span class="opt">Hard disk 1:</span> <span class="vals">— .VHD .IMG</span> <span class="when">[not PCjr]</span></li>
+    <li><span class="group">— Machine —</span></li>
+    <li><span class="opt">Machine</span> <span class="vals">IBM PCXT · Tandy 1000 · IBM PCjr</span> <span class="when">[full core]</span></li>
+    <li><span class="opt">CPU Speed</span> <span class="vals">4.77MHz · 7.16MHz · 9.54MHz · Max</span> <span class="when">[not PCjr]</span></li>
+    <li><span class="opt">Write protect</span> <span class="vals">None · A: · B: · A: &amp; B:</span> <span class="when">[not PCjr]</span>; <span class="vals">No · Yes</span> <span class="when">[PCjr]</span></li>
+    <li><span class="page-name">Video ›</span> <span class="page-name">Audio ›</span> <span class="page-name">Hardware ›</span> <span class="page-name">BIOS ›</span> <span class="page-name">Settings ›</span></li>
+    <li><span class="opt">Reset &amp; apply</span> <span class="vals">— resets the machine with the pending settings</span></li>
+  </ul></div>
+  <p>Each drive row shows the name of its image. Opening the file selector of a drive that holds one offers <em>Unmount NAME</em> as its first row. <strong>Max</strong> is an unthrottled throughput setting, not a historical CPU grade.</p>
+</section>
+
+<section class="section" id="video">
+  <header class="section-header"><div class="section-number">03</div><div><p class="eyebrow">Page</p><h2>Video and Output</h2></div></header>
+  <div class="osd panel"><ul>
+    <li><span class="page-name">Video</span><ul>
+      <li><span class="group">— Card —</span> <span class="when">[PC/XT]</span></li>
+      <li><span class="opt">Video card</span> <span class="vals">CGA/HGC · EGA</span> <span class="when">[PC/XT, full core]</span></li>
+      <li><span class="opt">Monitor</span> <span class="vals">5154/ECD · 5153/CGA · 5151/MDA</span> <span class="when">[EGA]</span></li>
+      <li><span class="opt">1st video</span> <span class="vals">CGA · Hercules</span> <span class="when">[PC/XT, CGA/HGC]</span></li>
+      <li><span class="opt">CGA graphics</span> / <span class="opt">HGC graphics</span> <span class="vals">Yes · No</span> <span class="when">[PC/XT, CGA/HGC]</span></li>
+      <li><span class="group">— Picture —</span></li>
+      <li><span class="opt">Display</span> <span class="vals">Full Color · Green · Amber · B&amp;W · Red · Blue · Fuchsia · Purple</span></li>
+      <li><span class="opt">Composite</span> <span class="vals">Off · On</span> <span class="when">[CGA]</span></li>
+      <li><span class="opt">Border</span> <span class="vals">No · Yes</span> <span class="when">[CGA]</span></li>
+      <li><span class="opt">Border CRT offs</span> <span class="vals">No · Yes</span> <span class="when">[CGA]</span></li>
+      <li><span class="opt">Frame stacking</span> <span class="vals">Native · Rebuilt</span> <span class="when">[CGA]</span></li>
+      <li><span class="page-name">Output</span><ul>
+        <li><span class="group">— Position —</span></li>
+        <li><span class="opt">CRT H offset</span> <span class="vals">0–15</span>; <span class="opt">CRT V offset</span> <span class="vals">0–7</span></li>
+        <li><span class="group">— Output —</span></li>
+        <li><span class="opt">Scandoubler</span> <span class="vals">Auto · Off</span></li>
+        <li><span class="opt">350-line CRT</span> <span class="vals">480p 31 kHz · Native · 480i 15 kHz · 240p 15 kHz</span></li>
+        <li><span class="group">— Boot splash —</span></li>
+        <li><span class="opt">Splash time</span> <span class="vals">5 s · 10 s · 15 s · 0 s</span></li>
+        <li><span class="page-name">Video info</span> <span class="vals">— the picture the machine draws and what leaves the VGA pins, measured live</span></li>
+      </ul></li>
+    </ul></li>
+  </ul></div>
+  <ul>
+    <li><strong>1st video</strong> tells the BIOS which card is the first display when CGA and Hercules are both present; <kbd>F11</kbd> swaps the output between them. <strong>CGA graphics</strong> and <strong>HGC graphics</strong> remove a card from the machine.</li>
+    <li><strong>Display</strong> tints the RGBI picture; <strong>Composite</strong> enables the simulated NTSC colour decoder of the CGA.</li>
+    <li><strong>Frame stacking: Rebuilt</strong> shows on a stable raster the per-scanline CRTC tricks (such as the water of the <em>Area 5150</em> end credits) that need CGA-exact timing the core does not reach. <em>Native</em> runs them on the CRTC as written.</li>
+    <li><strong>Scandoubler: Off</strong> sends the 200-line modes at 15.7 kHz. <strong>350-line CRT</strong> chooses how the 350-line EGA and Hercules modes leave the board: 720×480 at 59.94 Hz (the default), the card's own raster, or 15 kHz interlaced or progressive.</li>
+  </ul>
+</section>
+
+<section class="section" id="audio">
+  <header class="section-header"><div class="section-number">04</div><div><p class="eyebrow">Page</p><h2>Audio</h2></div></header>
+  <div class="osd panel"><ul>
+    <li><span class="page-name">Audio</span><ul>
+      <li><span class="group">— Sound cards —</span> <span class="when">[not PCjr]</span></li>
+      <li><span class="opt">Audio 220h</span> <span class="vals">C/MS · Sound Blaster · Off</span> <span class="when">[build with C/MS or SB, not PCjr]</span></li>
+      <li><span class="opt">OPL2</span> <span class="vals">Adlib 388h · SB FM 388h/228h · Off</span> <span class="when">[not PCjr]</span></li>
+      <li><span class="opt">Tandy Sound</span> <span class="vals">Off · On</span> <span class="when">[PC/XT]</span></li>
+      <li><span class="opt">SB IRQ</span> <span class="vals">5 · 7</span> <span class="when">[build with SB, not PCjr]</span></li>
+      <li><span class="group">— PCjr —</span> <span class="when">[PCjr]</span></li>
+      <li><span class="opt">Tape sound</span> <span class="vals">Off · On</span> <span class="when">[PCjr]</span></li>
+      <li><span class="group">— Levels —</span></li>
+      <li><span class="opt">Speaker Volume</span> <span class="vals">1–4</span>; <span class="opt">Audio Boost</span> <span class="vals">No · 2x · 4x</span>; <span class="opt">Stereo Mix</span> <span class="vals">none · 25% · 50% · 100%</span></li>
+    </ul></li>
+  </ul></div>
+  <p>C/MS and the Sound Blaster Pro share 220h and collide on 226h/227h, so <strong>Audio 220h</strong> enables one of them. In the ZXTRES PC/XT builds, which have the Sound Blaster but no C/MS, the <em>C/MS</em> value leaves 220h empty. <strong>Tandy Sound</strong> adds the SN76489 to a PC/XT; the Tandy 1000 and the PCjr always have it.</p>
+</section>
+
+<section class="section" id="hardware">
+  <header class="section-header"><div class="section-number">05</div><div><p class="eyebrow">Page</p><h2>Hardware</h2></div></header>
+  <div class="osd panel"><ul>
+    <li><span class="page-name">Hardware</span><ul>
+      <li><span class="group">— CPU —</span> <span class="when">[not PCjr]</span></li>
+      <li><span class="opt">CPU Type</span> <span class="vals">8088 · 8086</span>; <span class="opt">Fake 286 FLAGS</span> <span class="vals">Off · On</span>; <span class="opt">BIOS Writable</span> <span class="vals">None · EC00 · Main · All</span> <span class="when">[not PCjr]</span></li>
+      <li><span class="group">— Memory —</span></li>
+      <li><span class="opt">EMS D000-DFFF</span> <span class="vals">Enabled · Disabled</span> <span class="when">[not PCjr]</span></li>
+      <li><span class="opt">UMB C400-CFFF</span> <span class="vals">Enabled · Disabled</span> <span class="when">[build with it, not PCjr]</span></li>
+      <li><span class="opt">A000 UMB</span> <span class="vals">Enabled · Disabled</span> <span class="when">[CGA, not PCjr]</span></li>
+      <li><span class="opt">PCjr RAM</span> <span class="vals">128K … 640K</span> <span class="when">[PCjr]</span></li>
+      <li><span class="group">— Joysticks —</span></li>
+      <li><span class="opt">Joystick 1</span> / <span class="opt">Joystick 2</span> <span class="vals">Digital · Analog · Off</span></li>
+      <li><span class="opt">Sync to CPU</span> <span class="vals">No · Yes</span> <span class="when">[not PCjr]</span>; <span class="opt">Swap Joysticks</span> <span class="vals">No · Yes</span></li>
+    </ul></li>
+  </ul></div>
+  <ul>
+    <li><strong>CPU Type</strong> selects the 8088 or the 8086 bus; <strong>Fake 286 FLAGS</strong> helps software that probes the reserved FLAGS bits.</li>
+    <li><strong>BIOS Writable</strong> lets software write to the EC00 ROM, the system BIOS or both (some utilities patch them).</li>
+    <li>The EMS is a 2 MiB Lo-tech board, frame at D000h, ports 260h–263h (driver: <code>hdd/LTEMM-r01</code>). <strong>A000 UMB</strong> maps RAM at A0000h while the CGA/Hercules card is in use; <strong>UMB C400-CFFF</strong> maps RAM behind the EGA BIOS.</li>
+    <li>The DB9 pads are digital; <em>Analog</em> is kept for completeness.</li>
+  </ul>
+</section>
+
+<section class="section" id="bios">
+  <header class="section-header"><div class="section-number">06</div><div><p class="eyebrow">Page</p><h2>BIOS</h2></div></header>
+  <div class="osd panel"><ul>
+    <li><span class="page-name">BIOS</span><ul>
+      <li><span class="opt">PCXT BIOS:</span> <span class="vals">.ROM .BIN</span> <span class="when">[PC/XT]</span></li>
+      <li><span class="opt">Tandy BIOS:</span> <span class="vals">.ROM .BIN</span> <span class="when">[Tandy]</span></li>
+      <li><span class="opt">PCjr BIOS:</span> <span class="vals">.ROM .BIN</span> <span class="when">[PCjr]</span></li>
+      <li><span class="opt">EGA BIOS:</span> <span class="vals">.ROM .BIN</span> <span class="when">[EGA]</span></li>
+      <li><span class="opt">EC00 BIOS:</span> <span class="vals">.ROM .BIN</span> <span class="when">[not PCjr]</span></li>
+      <li><span class="opt">PCjr cart. 1:</span> / <span class="opt">PCjr cart. 2:</span> <span class="vals">.JRC</span> <span class="when">[PCjr]</span></li>
+    </ul></li>
+  </ul></div>
+  <p>At start the firmware loads <code>PCXT.ROM</code>, <code>TANDY.ROM</code>, <code>EC00.ROM</code>, <code>EGA.ROM</code> and <code>PCJR.ROM</code> from the <code>PCXT</code> folder, or the files saved in <code>PCXT.CFG</code>, with the machine held in reset. A file chosen here is loaded at once and the machine restarts. Cartridges are not saved; a cartridge entry that holds one offers <em>Unmount NAME</em>.</p>
+</section>
+
+<section class="section" id="settings">
+  <header class="section-header"><div class="section-number">07</div><div><p class="eyebrow">Page</p><h2>Settings</h2></div></header>
+  <div class="osd panel"><ul>
+    <li><span class="page-name">Settings</span><ul>
+      <li><span class="page-name">Info</span> <span class="vals">— build, board, machine, CPU, card, mounted images, state of PCXT.CFG</span></li>
+      <li><span class="group">— Appearance —</span></li>
+      <li><span class="opt">OSD position</span> <span class="vals">Centre · Top left · Top right · Bottom left · Bottom right</span></li>
+      <li><span class="group">— Settings file —</span></li>
+      <li><span class="opt">Save settings</span>; <span class="opt">Reset to defaults</span></li>
+      <li><span class="group">— Board —</span></li>
+      <li><span class="opt">Reload ZX core</span> <span class="vals">— asks first, then reloads the Spectrum core from flash</span></li>
+    </ul></li>
+  </ul></div>
+  <p><strong>Info</strong> names the system and the board of the build (the full core says "PCXT, Tandy, PCjr" and "ZXTRES+/++"; a ZXTRES build names its machine and "ZXTRES"), and shows a hard disk that waits for the reset in yellow with "(reset)".</p>
+</section>
+
+<section class="section" id="builds">
+  <header class="section-header"><div class="section-number">08</div><div><p class="eyebrow">ZXTRES (A35T)</p><h2>The OSD of each build</h2></div></header>
+  <p class="intro">A ZXTRES build has one machine and one card, so it has no <strong>Machine</strong> or <strong>Video card</strong> entry, and the entries of hardware it does not hold are hidden. The firmware is built with the build's profile; the status bits keep the same layout in every build, so a <code>PCXT.CFG</code> saved by one build is read by another.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Page</th><th>PCXT_CGAHGC</th><th>PCXT_EGA</th><th>TANDY1000</th><th>PCJR</th></tr></thead>
+    <tbody>
+      <tr><td>Main</td><td>Floppy A/B, hard disks 0/1, CPU Speed, Write protect</td><td>Floppy A/B, hard disks 0/1, CPU Speed, Write protect</td><td>Floppy A/B, hard disks 0/1, CPU Speed, Write protect</td><td>Floppy A, Write protect (No/Yes)</td></tr>
+      <tr><td>Video</td><td>1st video, CGA graphics, HGC graphics; Display, Composite, Border, Border CRT offs, Frame stacking</td><td>Monitor; Display</td><td>Display, Composite, Border, Border CRT offs, Frame stacking</td><td>Display, Composite, Border, Border CRT offs, Frame stacking</td></tr>
+      <tr><td>Output</td><td colspan="4">CRT H/V offset, Scandoubler, 350-line CRT, Splash time, Video info (all builds)</td></tr>
+      <tr><td>Audio</td><td>Audio 220h, OPL2, Tandy Sound, SB IRQ; levels</td><td>Audio 220h, OPL2, Tandy Sound, SB IRQ; levels</td><td>OPL2; levels</td><td>Tape sound; levels</td></tr>
+      <tr><td>Hardware</td><td>CPU Type, Fake 286 FLAGS, BIOS Writable; EMS, A000 UMB; joysticks</td><td>CPU Type, Fake 286 FLAGS, BIOS Writable; EMS, UMB C400-CFFF; joysticks</td><td>CPU Type, Fake 286 FLAGS, BIOS Writable; EMS, A000 UMB; joysticks</td><td>PCjr RAM; Joystick 1/2, Swap Joysticks</td></tr>
+      <tr><td>BIOS</td><td>PCXT BIOS, EC00 BIOS</td><td>PCXT BIOS, EGA BIOS, EC00 BIOS</td><td>Tandy BIOS, EC00 BIOS</td><td>PCjr BIOS, PCjr cart. 1 and 2</td></tr>
+      <tr><td>Settings</td><td colspan="4">Info, OSD position, Save settings, Reset to defaults, Reload ZX core (all builds)</td></tr>
+    </tbody>
+  </table></div>
+  <p>The full core (ZXTRES+ and ZXTRES++) shows every entry above according to the machine and card chosen.</p>
+</section>
+
+</article>
+</main>
+<footer class="footer"><strong>PCXT · ZXTres</strong> · Menu generated from <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/blob/main/zxtres/scripts/make_guest.py"><code>make_guest.py</code></a> (<code>CONF_ENTRIES</code>) and <a href="https://github.com/aitorgomez-net/PCXT_ZXTres/blob/main/zxtres/firmware/overrides.c"><code>overrides.c</code></a> (<code>menu_mask</code>) · GPL v3</footer>
+</body>
+</html>

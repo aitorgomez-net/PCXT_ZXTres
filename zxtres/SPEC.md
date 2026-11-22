@@ -95,6 +95,7 @@ The work is on branch `main` and has not run on a board yet.
 | Video: CGA and EGA through the splash fade, HGC sampled at 57 MHz, then the F12 credits, the line doubler and the OSD; 350-line pictures through the SRAM scan converter; video information page | Written, modules inherited | guest `VIDEO_OUT` |
 | Audio: the MiSTer mix (speaker, OPL2, C/MS, Tandy, Sound Blaster), the compressor and the stereo mix, to the sigma-delta and I2S outputs | Written | guest `AUDIO_STAGE` |
 | OSD: title *PCXT ZXTres*, pages Video (with Output), Audio, Hardware, BIOS and Settings | Written | `rtl/zxtres_osd.sv` (`TITLE` parameter), guest `CONF_STR` |
+| ZXTRES (A35T): four single-machine builds (`profiles/zx3_a35t_*`), with the OSD of each showing only its own entries (no Machine or Video card entry) | Built; the OSD in Sim (`+OSD_TOUR` with `PCXT_PROFILE=zx3_a35t_pcxt_cgahgc`) | `profiles/`, `scripts/build_pcxt.sh A35T`, `scripts/build_firmware.sh`, `firmware/overrides.c` (`menu_mask()`) |
 | OSD entries that follow the machine and the card, as MiSTer's `status_menumask`: an entry starting with a flag byte `0xC0+n` in `CONF_STR` is shown only while bit `n` of `menu_mask()` is set (`0xE0+n`: while it is clear; one byte each because the string `user_io.v` serves ends at 2047 bytes, which `make_guest.py` enforces); hidden entries take no row | Written; the firmware builds, not yet seen on the board | `firmware/overrides.c` (`menu_mask()`), `scripts/expand_demistify_osd.py`, `scripts/make_guest.py` (`HIDE_*`) |
 | Boot splash: the MiSTer picture with "MiSTer" redrawn as a striped, slanted "ZXTres" (T, r and e from the original word, Z, X and s drawn in the same lettering, white top stripes as in the PCAT-286 splash) | Done | `scripts/make_splash.py`, `splash/splash_320x200.hex`, used by `build_pcxt.sh` in place of `rtl/video/splash_320x200.hex` |
 | F12 credits with the ZXTres art and the port's credits | Done | `credits/msg`, and `credits/msg.bin`, which is the first 8192 rows (four pages) of the binary output of the core's own `credits/msg2hex` |
@@ -118,6 +119,8 @@ The work is on branch `main` and has not run on a board yet.
 | Hide flags right after a page declaration, read by the patched `parseconf()` (`expand_demistify_osd.py`) | The original counts a declaration's field by testing for the next entry's `P` right after it; a flag byte there lost one count per declaration, so every file entry after the declarations of Video, Audio, Hardware and BIOS read the extensions of an earlier entry (the PCjr cartridges listed `.ROM` files) and the first entry of a page vanished. The flags are now read there. The cartridge entries declare `JRC` only, as MiSTer. | Written | `scripts/expand_demistify_osd.py`, `scripts/make_guest.py` |
 | MiSTer bits fixed instead of offered: MPU-401 off (bit 88) | No MIDI on the board. |
 | Status word widened to 128 bits in the port's firmware and RTL, not in DeMiSTify or mist-modules | The submodules stay as they are: the firmware replaces DeMiSTify's `statusword.c` at build time and overrides the weak `configstring_getdigit()`, and a separate module reads bytes 9-16 of the command that `user_io` stops at 8. |
+| The OSD follows the build: one configuration string, the firmware built with the build's profile (`build_firmware.sh <profile>` writes `build_features.h`); `menu_mask()` takes the fixed machine and card of a single-machine build and the hide bits 3 (Machine), 4 (Video card), 5 (UMB C400), 6 (Audio 220h) and 9 (SB IRQ) from the profile | The string is 2033 of 2047 bytes, so per-build strings would cost bytes on every entry; flags computed in the firmware cost one byte (the Machine entry). The status bits keep one layout, so `PCXT.CFG` reads the same in every build, and the core already ignores the machine and card bits when `ENABLE_MODEL_TANDY` and both card families are not built. |
+| Every ZXTres profile sets `LAYOUT_EGA=1` | `make_guest.py` rebuilds the MiSTer status word in the EGA layout only. The first A35T Tandy 1000 and PCjr profiles left it out, so the machine read composite, border, frame stacking, joystick swap, EMS and A000 UMB from other bits, and put the EMS frame at C000h. |
 | Joystick type offered with Digital first | The DB9 ports are digital; MiSTer offers Analog first. The OSD value is remapped. |
 | The ROM loader waits behind a FIFO | `rom_loader` writes only while the CPU bus is held. During reset the hold is granted at once, so the FIFO only needs to absorb the SDRAM refresh and arbitration latency. Each word carries the parity of its download: when the firmware starts the next ROM before the loader has taken the last words of the previous one, those words keep their index, and the next download reaches the loader after a few idle clocks. The first version changed the index under the queued words; the test caught it. |
 | Win+F12 filtered at byte level before the PS/2 relay | The OSD key must not reach the machine. F12 alone stays with the machine, for the credits and the splash. |
@@ -155,6 +158,16 @@ hundred picoseconds.
 The A200T build (`build_pcxt.sh A200T`, `xc7a200tfbg484-2`) of the same
 sources has WNS +0.343 ns, WHS +0.051 ns, 29.8k LUTs, 17.4k registers, 30
 block RAM tiles and no critical warnings; it has not been tried on a board.
+
+The release of 22 November 2026, with the smaller `vram_fetch` snoop, the
+microcode ROM in block RAM and the OSD that follows the build: A100T WNS
++0.253 ns, WHS +0.042 ns, 24,972 LUTs, 17,332 registers, 34 block RAM tiles;
+A200T WNS +0.471 ns, WHS +0.034 ns, 24,960 LUTs. The four A35T builds
+(`xc7a35tfgg484-2`, 20,800 LUTs): `PCXT_CGAHGC` 18,394 LUTs, WNS +0.400 ns;
+`PCXT_EGA` 18,194, +0.648 ns; `TANDY1000` 16,780, +0.356 ns; `PCJR` 16,657,
++0.166 ns; all WHS positive. None has critical warnings except two harmless
+ones in `PCXT_EGA` and `TANDY1000`: a false path whose registers those builds
+do not contain.
 
 Still to do: watch the `clk_14_318` to clk_114 crossing,
 which has little margin of its own.
